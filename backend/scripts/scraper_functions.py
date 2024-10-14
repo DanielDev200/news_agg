@@ -14,7 +14,7 @@ def insert_article(data):
         , data['api']
         , data['title']
         , data['url']
-        , data['img'], 
+        , data['img']
         , data['category']
         , data['first_scraped']
         , data['days_found']
