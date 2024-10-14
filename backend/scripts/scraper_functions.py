@@ -1,4 +1,4 @@
-from db_config import get_db_connection
+from backend.db.db_config import get_db_connection
 
 def insert_article(data):
     connection = get_db_connection()
