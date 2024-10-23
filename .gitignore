@@ -3,3 +3,7 @@
 
 # Ignore Python virtual environment directory
 myenv/
+.env
+notes.txt
+scrape.log
+__pycache__/

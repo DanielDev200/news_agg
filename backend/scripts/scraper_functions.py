@@ -1,7 +1,11 @@
 from backend.db.db_config import get_db_connection
 
 def insert_article(data):
-    connection = get_db_connection()
+    try:
+        connection = get_db_connection()
+    except Exception as e:
+        print(f"Failed to connect to the database: {e}")
+
     cursor = connection.cursor()
 
     sql = """
@@ -26,7 +30,7 @@ def insert_article(data):
     )
 
     cursor.execute(sql, values)
-    connection.commit()  # Save the changes
+    connection.commit()
     cursor.close()
     connection.close()
 
@@ -41,7 +45,7 @@ def check_article_exists(title, link):
     cursor.close()
     connection.close()
 
-    return result[0] > 0  # Return True if count > 0
+    return result[0] > 0
 
 def update_days_found(title, link):
     connection = get_db_connection()
