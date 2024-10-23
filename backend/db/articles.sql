@@ -3,7 +3,7 @@
 
 CREATE DATABASE news_agg_main;
 
- CREATE TABLE articles (
+CREATE TABLE articles (
     id INT AUTO_INCREMENT PRIMARY KEY
     ,source VARCHAR(255) NOT NULL
     ,scraped BOOLEAN NOT NULL
@@ -17,7 +17,7 @@ CREATE DATABASE news_agg_main;
     ,city_identifier VARCHAR(255)
     ,county_identifier VARCHAR(255)
     ,state_identifier VARCHAR(255)
-    national_identifier VARCHAR(255)
-    special_identifier VARCHAR(255)
+    ,national_identifier VARCHAR(255)
+    ,special_identifier VARCHAR(255)
     UNIQUE (url)
 );
