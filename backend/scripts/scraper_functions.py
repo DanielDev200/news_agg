@@ -1,4 +1,5 @@
 from backend.db.db_config import get_db_connection
+from datetime import datetime
 
 def insert_article(data):
     try:
@@ -52,12 +53,25 @@ def update_days_found(title, link):
     cursor = connection.cursor()
 
     query = """
-        UPDATE articles
-        SET days_found = days_found + 1
+        SELECT first_scraped FROM articles
         WHERE title = %s AND url = %s
     """
     cursor.execute(query, (title, link))
-    connection.commit()
+    result = cursor.fetchone()
+    
+    if result:
+        first_scraped = result[0]
+        
+        today = datetime.now().date()
+        days_passed = (today - first_scraped).days if (today - first_scraped).days > 0 else 1
+
+        update_query = """
+            UPDATE articles
+            SET days_found = %s
+            WHERE title = %s AND url = %s
+        """
+        cursor.execute(update_query, (days_passed, title, link))
+        connection.commit()
     
     cursor.close()
     connection.close()
