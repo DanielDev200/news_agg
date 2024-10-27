@@ -58,6 +58,7 @@ def scrape_articles(url, title_element, title_class):
     else:
         logger.error(f"Error fetching the page: {response.status_code}")
 
+logger.info(f"Starting scrape job at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 scrape_articles('https://longbeachize.com/', 'h3', 'entry-title')
 scrape_articles('https://lbpost.com/', 'h2', 'entry-title')
 logger.info(f"Fetch Complete")
