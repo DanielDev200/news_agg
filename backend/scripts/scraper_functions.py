@@ -3,15 +3,11 @@ from backend.logging_config import logger
 from datetime import datetime
 
 def log_article_summary(source, new_articles, existing_articles_count):
-    """
-    Logs a summary message with the count of new and existing articles
-    """
     logger.info(f"Existing articles found on {source}: {existing_articles_count}")
 
     if new_articles:
         logger.info(f"New articles found on {source}: {len(new_articles)}")
         
-        # Create a string of new articles with the first four words of each title, separated by '|'
         truncated_titles = ' | '.join([' '.join(title.split()[:4]) + "..." for title in new_articles])
         logger.info(f"New articles: {truncated_titles}")
     else:
