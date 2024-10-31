@@ -20,11 +20,6 @@ if os.getenv('ENV') == 'development':
 
 def get_db_connection():
     try:
-        logging.info(f"MYSQL_HOST: {os.getenv('MYSQL_HOST')}")
-        logging.info(f"MYSQL_USER: {os.getenv('MYSQL_USER')}")
-        logging.info(f"MYSQL_PASSWORD: {os.getenv('MYSQL_PASSWORD')}")
-        logging.info(f"MYSQL_DATABASE: {os.getenv('MYSQL_DATABASE')}")
-
         connection = mysql.connector.connect(
             host=os.getenv('MYSQL_HOST'),
             port=os.getenv('MYSQL_PORT', 3306),
@@ -37,3 +32,6 @@ def get_db_connection():
     except Error as e:
         logging.error(f"Error connecting to the database: {e}")
         return None
+
+
+

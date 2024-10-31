@@ -15,8 +15,8 @@ def scrape_articles(url, title_element, title_class):
         
         logger.info(f"Total articles found on {url}: {len(articles)}")
 
-        new_articles = []  # List to store new articles
-        existing_articles_count = 0  # Counter for existing articles
+        new_articles = [] 
+        existing_articles_count = 0
 
         for article in articles:
             a_tag = article.find('a')
@@ -25,12 +25,10 @@ def scrape_articles(url, title_element, title_class):
                 title = a_tag.text.strip()
                 link = a_tag['href']
 
-                # Check if the article already exists in the database
                 if check_article_exists(title, link):
                     existing_articles_count += 1
                     update_days_found(title, link)
                 else:
-                    # Insert new article
                     article_data = {
                         'source': url,
                         'scraped': True,
@@ -49,10 +47,8 @@ def scrape_articles(url, title_element, title_class):
                     }
                     insert_article(article_data)
                     
-                    # Add to new articles list
                     new_articles.append(title)
         
-        # Log summary information
         log_article_summary(url, new_articles, existing_articles_count)
 
     else:
