@@ -7,3 +7,5 @@ myenv/
 notes.txt
 scrape.log
 __pycache__/
+cron_env.log
+debug.log
