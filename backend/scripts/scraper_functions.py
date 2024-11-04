@@ -52,7 +52,7 @@ def check_article_exists(title, link):
         connection = get_db_connection()
         cursor = connection.cursor()
 
-        query = "SELECT COUNT(*) FROM articles WHERE title = %s AND url = %s"
+        query = "SELECT COUNT(*) FROM articles WHERE title = %s OR url = %s"
         cursor.execute(query, (title, link))
         result = cursor.fetchone()
 
@@ -70,7 +70,7 @@ def update_days_found(title, link):
 
     query = """
         SELECT first_scraped FROM articles
-        WHERE title = %s AND url = %s
+        WHERE url = %s
     """
     cursor.execute(query, (title, link))
     result = cursor.fetchone()
@@ -84,7 +84,7 @@ def update_days_found(title, link):
         update_query = """
             UPDATE articles
             SET days_found = %s
-            WHERE title = %s AND url = %s
+            WHERE url = %s
         """
         cursor.execute(update_query, (days_passed, title, link))
         connection.commit()
