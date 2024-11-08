@@ -15,7 +15,7 @@ export function HeroSection() {
       }}
     >
       <Typography variant="h3" gutterBottom>
-        Scroll for news if you want to
+        Doom scroll if you want to
       </Typography>
       <Typography variant="h6" gutterBottom>
         Or you can leave that noise behind
