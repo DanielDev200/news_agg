@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from backend.scripts.scraper_functions import insert_article, check_article_exists, update_days_found, log_article_summary
-from backend.logging_config import logger
+from backend.scraping.scripts.scraper_functions import insert_article, check_article_exists, update_days_found, log_article_summary
+from backend.scraping.logging_config import logger
 
 def scrape_articles(url, title_element, title_class):
     logger.info(f"Starting URL: {url}")
