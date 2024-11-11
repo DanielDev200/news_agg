@@ -9,3 +9,5 @@ scrape.log
 __pycache__/
 cron_env.log
 debug.log
+
+node_modules/
