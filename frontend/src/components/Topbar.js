@@ -1,38 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, IconButton, Box, Button, Menu, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 
 export function Topbar() {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-        setIsAuthenticated(true);
-      }
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setUser(session.user);
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    });
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, []);
+  const { isAuthenticated, setIsAuthenticated } = useAuth();
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -43,16 +17,13 @@ export function Topbar() {
   };
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
     if (error) console.error('Error logging in:', error.message);
   };
 
   const handleEmailLogin = async () => {
     const email = prompt('Please enter your email:');
     const password = prompt('Please enter your password:');
-
     if (email && password) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) console.error('Error logging in with email:', error.message);
@@ -62,7 +33,6 @@ export function Topbar() {
   const handleEmailSignup = async () => {
     const email = prompt('Please enter your email to sign up:');
     const password = prompt('Please enter your password:');
-
     if (email && password) {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) console.error('Error signing up with email:', error.message);
@@ -71,8 +41,11 @@ export function Topbar() {
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) console.error('Error logging out:', error.message);
-    else setIsAuthenticated(false);
+    if (error) {
+      console.error('Error logging out:', error.message);
+    } else {
+      setIsAuthenticated(false);
+    }
   };
 
   return (

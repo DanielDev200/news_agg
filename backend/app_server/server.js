@@ -1,11 +1,11 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 80;
 
-// Create a connection pool to the MySQL database
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
@@ -16,8 +16,12 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+// Use CORS middleware
+app.use(cors());
+
 // Endpoint to fetch articles by city and state
 app.get('/articles', async (req, res) => {
+    console.log('made it here');
 
     const { city, state } = req.query;
 
