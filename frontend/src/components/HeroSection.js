@@ -1,54 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button } from '@mui/material';
 import { states } from '../utils/stateUtils';
+import { capitalizeWords } from '../utils/functions';
 import SearchIcon from '@mui/icons-material/Search';
-import axios from '../utils/axiosConfig';
+import { fetchArticles, saveUserLocation } from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 export function HeroSection({ setArticles }) {
   const [inputValue, setInputValue] = useState('');
   const [error, setError] = useState('');
+  const { user, isAuthenticated, userLocation } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && userLocation && userLocation.city && userLocation.state) {
+      const formattedLocation = `${userLocation.city}, ${userLocation.state.toUpperCase()}`;
+      setInputValue(formattedLocation);
+      handleSearch(formattedLocation);
+    }
+  }, [isAuthenticated, userLocation]);
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
     setError('');
   };
 
-  const handleSearch = async () => {
-    // Regex to match both "City, StateAbbr" or "City, FullStateName"
+  const validateInput = (inputValue) => {
     const cityStateRegex = /^([\w\s]+),\s*([\w\s]+)$/;
     const match = cityStateRegex.exec(inputValue.trim().toLowerCase());
-  
+    
     if (!match) {
-      setError('Please enter a valid city and state (e.g., "Long Beach, CA" or "Long Beach, California").');
+      return { error: 'Please enter a valid city and state (e.g., "Long Beach, CA" or "Long Beach, California").' };
+    }
+    
+    return {
+      city: match[1].trim(),
+      stateInput: match[2].trim()
+    };
+  };
+
+  const getStateAbbreviation = (state) => state.length === 2 ? state.toUpperCase() : states[state.toLowerCase()] || null;
+
+  const handleSearch = async (overrideInputValue) => {
+    const searchValue = overrideInputValue || inputValue;
+    const { city, stateInput, error: inputError } = validateInput(searchValue);
+
+    if (inputError) {
+      setError(inputError);
       return;
     }
   
-    let city = match[1].trim();
-    let stateInput = match[2].trim();
-  
-    // If the state is provided as full name, convert it to abbreviation
-    let state = stateInput.length === 2 ? stateInput.toUpperCase() : states[stateInput.toLowerCase()];
+    const state = getStateAbbreviation(stateInput);
   
     if (!state) {
       setError('Please enter a valid state name or abbreviation.');
       return;
     }
-
-    console.log('city: ', city);
-    console.log('state: ', state);
   
-    try {
-      const response = await axios.get(`/articles?city=${city}&state=${state}`);
-      if (response.status === 200) {
-        setArticles(response.data.articles.slice(0, 10));
-      } else {
-        setError('No articles found for the specified city and state.');
-      }
-    } catch (err) {
-      setError('Error fetching articles. Please try again.');
-      console.error('Error fetching articles:', err);
+    const { articles, error: fetchError } = await fetchArticles(city, state);
+  
+    if (fetchError) {
+      setError(fetchError);
+      return;
     }
-  }
+    
+    setArticles(articles);
+
+    if (isAuthenticated) {
+      if (!userLocation || (!userLocation.city && !userLocation.state)) {
+        await saveUserLocation(user.id, capitalizeWords(city), state);
+      }
+    }
+  };
 
   return (
     <Box
@@ -77,7 +99,7 @@ export function HeroSection({ setArticles }) {
           helperText={error}
           sx={{ backgroundColor: 'white', width: '400px', mr: 2 }}
         />
-        <Button variant="contained" color="success" onClick={handleSearch}>
+        <Button variant="contained" color="success" onClick={() => handleSearch()}>
           <SearchIcon />
         </Button>
       </Box>

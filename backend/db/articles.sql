@@ -4,20 +4,35 @@
 CREATE DATABASE news_agg_main;
 
 CREATE TABLE articles (
-    id INT AUTO_INCREMENT PRIMARY KEY
-    ,source VARCHAR(255) NOT NULL
-    ,scraped BOOLEAN NOT NULL
-    ,api BOOLEAN NOT NULL
-    ,title VARCHAR(500) NOT NULL
-    ,url VARCHAR(255) NOT NULL
-    ,img VARCHAR(1000)
-    ,category VARCHAR(255)
-    ,first_scraped DATE
-    ,days_found INT
-    ,city_identifier VARCHAR(255)
-    ,county_identifier VARCHAR(255)
-    ,state_identifier VARCHAR(255)
-    ,national_identifier VARCHAR(255)
-    ,special_identifier VARCHAR(255)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    source VARCHAR(255) NOT NULL,
+    scraped BOOLEAN NOT NULL,
+    api BOOLEAN NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    img VARCHAR(1000),
+    category VARCHAR(255),
+    first_scraped DATE,
+    days_found INT,
+    city_identifier VARCHAR(255),
+    county_identifier VARCHAR(255),
+    state_identifier VARCHAR(255),
+    national_identifier VARCHAR(255),
+    special_identifier VARCHAR(255)
     UNIQUE (url)
+);
+
+CREATE TABLE user_location (
+    user_id VARCHAR(255) NOT NULL,
+    city VARCHAR(255) NOT NULL,
+    state VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id)
+);
+
+CREATE TABLE user_article_clicks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    article_id INT NOT NULL,
+    click_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
