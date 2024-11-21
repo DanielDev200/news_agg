@@ -9,11 +9,12 @@ import { ErrorNotification } from './components/ErrorNotification';
 
 function App() {
   const [articles, setArticles] = useState([]);
+  const [articleFetchMade, setArticleFetchMade] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Check for error messages in the URL hash
     const hash = window.location.hash;
+
     if (hash) {
       const params = new URLSearchParams(hash.substring(1));
       const error = params.get('error');
@@ -23,7 +24,6 @@ function App() {
         setErrorMessage(decodeURIComponent(errorDescription.replace(/\+/g, ' ')));
       }
 
-      // Clear the hash from the URL after extracting the message
       window.history.replaceState(null, null, ' ');
     }
   }, []);
@@ -44,8 +44,15 @@ function App() {
               path="/"
               element={
                 <>
-                  <HeroSection setArticles={setArticles} />
-                  <ExploreSection articles={articles} />
+                  <HeroSection
+                    setArticles={setArticles}
+                    setArticleFetchMade={setArticleFetchMade}
+                  />
+                  <ExploreSection
+                    articles={articles}
+                    setArticles={setArticles}
+                    articleFetchMade={articleFetchMade}
+                  />
                 </>
               }
             />

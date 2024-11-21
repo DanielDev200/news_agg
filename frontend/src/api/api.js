@@ -1,15 +1,42 @@
 import axios from './axiosConfig';
 
-export const fetchArticles = async (city, state) => {
+export const fetchArticles = async (city, state, user_id) => {
   try {
-    const response = await axios.get(`/articles?city=${city}&state=${state}`);
+    const response = await axios.get('/articles', {
+      params: {
+        city,
+        state,
+        user_id
+      }
+    });
+
     if (response.status === 200) {
-      return { articles: response.data.articles.slice(0, 10) };
+      return { articles: response.data.articles };
     }
     return { error: 'No articles found for the specified city and state.' };
   } catch (err) {
     console.error('Error fetching articles:', err);
     return { error: 'Error fetching articles. Please try again.' };
+  }
+};
+
+export const fetchUnservedArticle = async (city, state, user_id) => {
+  try {
+    const response = await axios.get('/articles/unserved', {
+      params: {
+        city,
+        state,
+        user_id
+      },
+    });
+
+    if (response.status === 200) {
+      return { article: response.data.article };
+    }
+    return { error: 'No unserved article found for the specified parameters.' };
+  } catch (err) {
+    console.error('Error fetching unserved article:', err);
+    return { error: 'Error fetching article. Please try again.' };
   }
 };
 
@@ -48,10 +75,12 @@ export const recordUserArticleClick = async (userId, articleId) => {
       user_id: userId,
       article_id: articleId,
     });
+
     return response.status === 200;
   } catch (error) {
     console.error('Error recording article click:', error);
     return false;
   }
 };
+
 

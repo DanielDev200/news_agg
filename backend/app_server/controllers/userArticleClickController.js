@@ -9,7 +9,7 @@ const recordArticleClick = async (req, res) => {
 
     try {
         const query = `
-            INSERT INTO user_article_clicks (user_id, article_id, click_time)
+            INSERT INTO user_article_clicks (user_id, article_id, created_at)
             VALUES (?, ?, NOW())
         `;
         await pool.execute(query, [user_id, article_id]);

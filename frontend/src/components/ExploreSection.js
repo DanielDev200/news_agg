@@ -1,21 +1,25 @@
-// components/ExploreSection.js
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { recordUserArticleClick } from '../api/api';
-import { Container, Box, Typography, Grid as Grid2 } from '@mui/material';
-import ArticleCard from './ArticleCard';
-import DummyCard from './DummyCard';
+import React, { useEffect, useState } from 'react';
+import { Container, Box, Typography } from '@mui/material';
 import LoadingSpinner from './LoadingSpinner';
+import ArticleList from './ArticleList';
+import WelcomeMessage from './WelcomeMessage';
+import { useAuth } from '../context/AuthContext';
+import { recordUserArticleClick, fetchUnservedArticle } from '../api/api';
+import PopupDialog from './PopupDialog';
 
-export function ExploreSection({ articles }) {
+export function ExploreSection({ articles, setArticles, articleFetchMade }) {
+  const { user, isAuthenticated, userLocation } = useAuth();
   const [loading, setLoading] = useState(true);
-  const { user, isAuthenticated } = useAuth();
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [noArticlesMessage, setNoArticlesMessage] = useState('');
 
   useEffect(() => {
-    if (articles.length > 0 || !isAuthenticated) {
+    if (isAuthenticated && userLocation) {
+      setLoading(articleFetchMade === false);
+    } else {
       setLoading(false);
     }
-  }, [articles, isAuthenticated]);
+  }, [articles, isAuthenticated, userLocation]);
 
   const handleArticleClick = async (article) => {
     if (isAuthenticated && user) {
@@ -24,34 +28,84 @@ export function ExploreSection({ articles }) {
     window.open(article.url, '_blank');
   };
 
-  return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="h4" align="center" gutterBottom>
-          Local news plus the rest
-        </Typography>
+  const handleArticleSwap = async (index) => {
+    if (!isAuthenticated) {
+      setPopupOpen(true);
+      return;
+    }
 
-        {loading ? (
-          <LoadingSpinner />
-        ) : (
-          <Grid2 container spacing={4} sx={{ mt: 2 }}>
-            {articles.length > 0 ? (
-              articles.map((article, index) => (
-                <Grid2 item key={index} xs={12} sm={6} md={3} lg={3} xl={3}>
-                  <ArticleCard article={article} onClick={() => handleArticleClick(article)} />
-                </Grid2>
-              ))
-            ) : (
-              !isAuthenticated &&
-              [1, 2, 3, 4].map((item, index) => (
-                <Grid2 item key={index} xs={12} sm={6} md={3} lg={3} xl={3}>
-                  <DummyCard title={`Dummy Title ${item}`} />
-                </Grid2>
-              ))
-            )}
-          </Grid2>
-        )}
+    try {
+      const currentArticle = articles[index];
+      const { article: newArticle, error: fetchError } = await fetchUnservedArticle(
+        userLocation.city,
+        userLocation.state,
+        user.id
+      );
+
+      if (fetchError) {
+        console.error('Error fetching unserved article:', fetchError);
+        return;
+      }
+
+      if (newArticle) {
+        setArticles((prevArticles) => {
+          const updatedArticles = [...prevArticles];
+          updatedArticles[index] = newArticle;
+          return updatedArticles;
+        });
+      } else {
+        console.log('No unserved article available to swap.');
+      }
+    } catch (error) {
+      console.error('Error swapping article:', error);
+    }
+  };
+
+  const renderContent = () => {
+    if (!isAuthenticated && !articleFetchMade) {
+      return <WelcomeMessage />;
+    }
+
+    if (loading) {
+      return <LoadingSpinner />;
+    }
+
+    if (articleFetchMade && articles.length > 0) {
+      return (
+        <ArticleList
+          articles={articles}
+          onArticleClick={handleArticleClick}
+          onArticleSwap={handleArticleSwap}
+        />
+      );
+    }
+
+    if (articleFetchMade && articles.length === 0) {
+      return (
+        <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
+          {noArticlesMessage || 'No articles found for your selected city and state.'}
+        </Typography>
+      );
+    }
+
+    return null; // Fallback in case none of the conditions match
+  };
+
+  if (!isAuthenticated && !articleFetchMade) {
+    return <WelcomeMessage/>
+  }
+
+  return (
+    <Container maxWidth="xl" sx={{ mt: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        {renderContent()}
       </Box>
+      <PopupDialog
+        open={popupOpen}
+        onClose={() => setPopupOpen(false)}
+        title="Registration Required"
+        message="You need to register or log in to swap articles."
+      />
     </Container>
   );
 }
