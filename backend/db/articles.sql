@@ -12,7 +12,7 @@ CREATE TABLE articles (
     url VARCHAR(255) NOT NULL,
     img VARCHAR(1000),
     category VARCHAR(255),
-    first_scraped DATE,
+    sourced DATE,
     days_found INT,
     city_identifier VARCHAR(255),
     county_identifier VARCHAR(255),
@@ -41,5 +41,11 @@ CREATE TABLE user_article_served (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     article_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE user_role (
+    user_id VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

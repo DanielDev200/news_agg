@@ -23,7 +23,7 @@ def insert_article(data):
     cursor = connection.cursor()
 
     sql = """
-    INSERT INTO articles (source, scraped, api, title, url, img, category, first_scraped, days_found, city_identifier, county_identifier, state_identifier, national_identifier, special_identifier)
+    INSERT INTO articles (source, scraped, api, title, url, img, category, sourced, days_found, city_identifier, county_identifier, state_identifier, national_identifier, special_identifier)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     values = (
@@ -34,7 +34,7 @@ def insert_article(data):
         data['url'],
         data['img'],
         data['category'],
-        data['first_scraped'],
+        data['sourced'],
         data['days_found'],
         data['city_identifier'],
         data['county_identifier'],
@@ -75,17 +75,17 @@ def update_days_found(title, link):
         cursor = connection.cursor()
 
         query = """
-            SELECT first_scraped FROM articles
+            SELECT sourced FROM articles
             WHERE url = %s
         """
         cursor.execute(query, (link,))
         result = cursor.fetchone()
 
         if result:
-            first_scraped = result[0]
+            sourced = result[0]
 
             today = datetime.now().date()
-            days_passed = (today - first_scraped).days if (today - first_scraped).days > 0 else 1
+            days_passed = (today - sourced).days if (today - sourced).days > 0 else 1
 
             update_query = """
                 UPDATE articles

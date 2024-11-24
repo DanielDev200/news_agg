@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button } from '@mui/material';
-import { states } from '../utils/stateUtils';
+import { states } from '../utils/dataUtils';
 import { capitalizeWords } from '../utils/functions';
 import SearchIcon from '@mui/icons-material/Search';
 import { fetchArticles, saveUserLocation } from '../api/api';
@@ -67,12 +67,12 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
       return;
     }
   
-    setArticles(articles);
+    setArticles([...articles.city, ...articles.county, ...articles.state, ...articles.national]);
     setArticleFetchMade(true);
   
     if (isAuthenticated) {
       if (!userLocation || (!userLocation.city && !userLocation.state)) {
-        if (userId) { // Only save location if userId exists
+        if (userId) {
           await saveUserLocation(userId, capitalizeWords(city), state);
         }
       }

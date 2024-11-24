@@ -2,6 +2,7 @@ import axios from './axiosConfig';
 
 export const fetchArticles = async (city, state, user_id) => {
   try {
+    
     const response = await axios.get('/articles', {
       params: {
         city,
@@ -20,9 +21,9 @@ export const fetchArticles = async (city, state, user_id) => {
   }
 };
 
-export const fetchUnservedArticle = async (city, state, user_id) => {
+export const fetchSwappedArticle = async (city, state, user_id) => {
   try {
-    const response = await axios.get('/articles/unserved', {
+    const response = await axios.get('/articles/swap', {
       params: {
         city,
         state,
@@ -30,12 +31,22 @@ export const fetchUnservedArticle = async (city, state, user_id) => {
       },
     });
 
-    if (response.status === 200) {
+    if (response.status === 200 && response.data.message) {
+      return {
+        articleMessage: true,
+        message: response.data.message,
+        messageType: 'servedContentShown',
+        article: response.data.article
+      };
+    }
+
+    if (response.status === 200 && response.data.article) {
       return { article: response.data.article };
     }
-    return { error: 'No unserved article found for the specified parameters.' };
+
+    return { error: 'Unexpected response from the server.' };
   } catch (err) {
-    console.error('Error fetching unserved article:', err);
+    console.error('Error fetching swapped article:', err);
     return { error: 'Error fetching article. Please try again.' };
   }
 };
@@ -80,6 +91,46 @@ export const recordUserArticleClick = async (userId, articleId) => {
   } catch (error) {
     console.error('Error recording article click:', error);
     return false;
+  }
+};
+
+export const fetchUserRole = async (userId) => {
+  try {
+    const response = await axios.get(`/user-role/${userId}`);
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user role:', error);
+    throw error;
+  }
+};
+
+export const createArticle = async (formData) => {  
+  try {
+      const response = await axios.post('/articles', {
+        source: formData.source || null,
+        scraped: formData.scraped || false,
+        api: formData.api || false,
+        title: formData.title || null,
+        url: formData.url || null,
+        img: formData.img || null,
+        category: formData.category || null,
+        sourced: formData.sourced || null,
+        days_found: formData.days_found || null,
+        city_identifier: formData.city_identifier || null,
+        county_identifier: formData.county_identifier || null,
+        state_identifier: formData.state_identifier || null,
+        national_identifier: formData.national_identifier || null,
+        special_identifier: formData.special_identifier || null,
+      });
+  
+      if (response.status !== 201) {
+        throw new Error('An error occurred while creating the article.');
+      }
+  
+      return response.data;
+  } catch (error) {
+      console.error('Error:', error);
   }
 };
 

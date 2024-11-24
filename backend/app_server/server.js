@@ -6,6 +6,7 @@ const pool = require('./db/config');
 const articlesRoutes = require('./routes/articlesRoutes');
 const userLocationRoutes = require('./routes/userLocationRoutes');
 const userArticleClickRoutes = require('./routes/userArticleClickRoutes');
+const userRoleRoutes = require('./routes/userRoleRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 80;
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/user-role', userRoleRoutes);
 app.use('/articles', articlesRoutes);
 app.use('/user-location', userLocationRoutes);
 app.use('/user-article-click', userArticleClickRoutes);

@@ -6,6 +6,8 @@ import { Topbar } from './components/Topbar';
 import { AuthProvider } from './context/AuthContext';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
+import { AdminForm } from './components/AdminForm';
+import ProtectedRoute from './utils/ProtectedRoute';
 
 function App() {
   const [articles, setArticles] = useState([]);
@@ -57,6 +59,14 @@ function App() {
               }
             />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminForm />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </Router>

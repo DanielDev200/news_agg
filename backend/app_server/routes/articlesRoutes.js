@@ -1,8 +1,9 @@
 const express = require('express');
-const { getArticles, getUnservedArticle } = require('../controllers/articlesController');
+const { getArticles, getSwappedArticle, createArticle } = require('../controllers/articlesController');
 const router = express.Router();
 
 router.get('/', getArticles);
-router.get('/unserved', getUnservedArticle);
+router.post('/', createArticle);
+router.get('/swap', getSwappedArticle);
 
 module.exports = router;

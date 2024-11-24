@@ -5,6 +5,7 @@ import { fetchUserLocation } from '../api/api';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [authAttempted, setAuthAttempted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }) => {
       if (session) {
         setUser(session.user);
         setIsAuthenticated(true);
+        setAuthAttempted(true);
         if (session.user?.id) {
           await getUserLocation(session.user.id);
         }
@@ -40,12 +42,14 @@ export const AuthProvider = ({ children }) => {
       if (session) {
         setUser(session.user);
         setIsAuthenticated(true);
+        setAuthAttempted(true);
         if (session.user?.id) {
           await getUserLocation(session.user.id);
         }
       } else {
         setUser(null);
         setIsAuthenticated(false);
+        setAuthAttempted(true);
         setUserLocation(null);
       }
     });
@@ -56,7 +60,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, userLocation, setIsAuthenticated }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, authAttempted, userLocation, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

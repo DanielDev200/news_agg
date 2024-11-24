@@ -37,7 +37,7 @@ def scrape_articles(url, title_element, title_class):
                         'url': link,
                         'img': None,
                         'category': 'General',
-                        'first_scraped': datetime.now().date(),
+                        'sourced': datetime.now().date(),
                         'days_found': 1,
                         'city_identifier': 'Long Beach',
                         'county_identifier': 'Los Angeles',
