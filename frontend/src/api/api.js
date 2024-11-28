@@ -21,13 +21,14 @@ export const fetchArticles = async (city, state, user_id) => {
   }
 };
 
-export const fetchSwappedArticle = async (city, state, user_id) => {
+export const fetchSwappedArticle = async (city, state, user_id, category) => {
   try {
     const response = await axios.get('/articles/swap', {
       params: {
         city,
         state,
-        user_id
+        user_id,
+        category
       },
     });
 
@@ -115,7 +116,6 @@ export const createArticle = async (formData) => {
         url: formData.url || null,
         img: formData.img || null,
         category: formData.category || null,
-        sourced: formData.sourced || null,
         days_found: formData.days_found || null,
         city_identifier: formData.city_identifier || null,
         county_identifier: formData.county_identifier || null,

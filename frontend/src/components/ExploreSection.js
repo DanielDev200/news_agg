@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Typography, Drawer, Button } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Container, Box, Typography, Drawer} from '@mui/material';
 import LoadingSpinner from './LoadingSpinner';
 import ArticleList from './ArticleList';
 import WelcomeMessage from './WelcomeMessage';
 import { useAuth } from '../context/AuthContext';
 import { recordUserArticleClick, fetchSwappedArticle } from '../api/api';
 import PopupDialog from './PopupDialog';
+import IFrame from './IFrame';
 
 export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const { user, isAuthenticated, authAttempted, userLocation } = useAuth();
@@ -87,7 +86,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       } = await fetchSwappedArticle(
         userLocation.city,
         userLocation.state,
-        user.id
+        user.id,
+        articles[index].category
       );
 
       if (fetchError) {
@@ -167,58 +167,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
           },
         }}
       >
-        <Box sx={{ height: '95vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-          {/* iFrame Content */}
-          <Box sx={{ flexGrow: 1, position: 'relative' }}>
-            <iframe
-              src={articleUrl}
-              style={{
-                width: '100%',
-                height: '100%',
-                border: 'none'
-              }}
-              title="Article"
-            />
-          </Box>
-          {/* Close and Open in New Tab Buttons */}
-    <Box
-      sx={{
-        height: '50px', // Height for the button container
-        display: 'flex',
-        justifyContent: 'space-between', // Space between buttons
-        alignItems: 'center',
-        background: 'white', // Background for visual clarity
-        borderTop: '1px solid #ccc', // Subtle border
-        px: 2, // Padding for spacing
-      }}
-    >
-      {/* Close Button */}
-      <Button
-        onClick={() => setDrawerOpen(false)}
-        endIcon={<KeyboardArrowDownIcon />}
-        sx={{
-          textTransform: 'none', // Prevent uppercase transformation
-          fontSize: '16px', // Font size for the button text
-          color: '#000', // Text color
-        }}
-      >
-        Close
-      </Button>
-
-      {/* Open in New Tab Button */}
-      <Button
-        onClick={() => window.open(articleUrl, '_blank')}
-        endIcon={<OpenInNewIcon />}
-        sx={{
-          textTransform: 'none', // Prevent uppercase transformation
-          fontSize: '16px', // Font size for the button text
-          color: '#000', // Text color
-        }}
-      >
-        Open in New Tab
-      </Button>
-    </Box>
-        </Box>
+       <IFrame articleUrl={articleUrl} setDrawerOpen={setDrawerOpen}/>
       </Drawer>
     </Container>
   );

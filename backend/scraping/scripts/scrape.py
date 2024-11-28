@@ -20,35 +20,42 @@ def scrape_articles(url, title_element, title_class):
 
         for article in articles:
             a_tag = article.find('a')
+            if not a_tag:
+                a_tag = article.find_parent('a')
 
             if a_tag:
-                title = a_tag.text.strip()
+                title = article.text.strip()
                 link = a_tag['href']
 
-                if check_article_exists(title, link):
+                if url in link:
+                    article_url = link
+                else:
+                    article_url = url + link
+
+                if check_article_exists(title, article_url):
                     existing_articles_count += 1
-                    update_days_found(title, link)
+                    update_days_found(title, article_url)
                 else:
                     article_data = {
                         'source': url,
                         'scraped': True,
                         'api': False,
                         'title': title,
-                        'url': link,
+                        'url': article_url,
                         'img': None,
                         'category': 'General',
                         'sourced': datetime.now().date(),
                         'days_found': 1,
                         'city_identifier': 'Long Beach',
-                        'county_identifier': 'Los Angeles',
+                        'county_identifier': None,
                         'state_identifier': 'CA',
-                        'national_identifier': 'USA',
+                        'national_identifier': None,
                         'special_identifier': None
                     }
                     insert_article(article_data)
-                    
+
                     new_articles.append(title)
-        
+                
         log_article_summary(url, new_articles, existing_articles_count)
 
     else:
@@ -57,4 +64,5 @@ def scrape_articles(url, title_element, title_class):
 logger.info(f"Starting scrape job at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 scrape_articles('https://longbeachize.com/', 'h3', 'entry-title')
 scrape_articles('https://lbpost.com/', 'h2', 'entry-title')
+scrape_articles('https://lbwatchdog.com/', 'h3', 'is-title')
 logger.info(f"Fetch Complete")

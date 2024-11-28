@@ -67,7 +67,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
       return;
     }
   
-    setArticles([...articles.city, ...articles.county, ...articles.state, ...articles.national]);
+    setArticles([...articles.city, ...articles.national]);
     setArticleFetchMade(true);
   
     if (isAuthenticated) {

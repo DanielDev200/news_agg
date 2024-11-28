@@ -18,22 +18,8 @@ const getArticleImage = (title) => {
   return 'https://via.placeholder.com/300';
 };
 
-const getArticleCategory = (article) => {
-  if (article.city_identifier && article.county_identifier && article.state_identifier && article.national_identifier) {
-    return 'City';
-  } else if (!article.city_identifier && article.county_identifier && article.state_identifier && article.national_identifier) {
-    return 'County';
-  } else if (!article.city_identifier && !article.county_identifier && article.state_identifier && article.national_identifier) {
-    return 'State';
-  } else if (!article.city_identifier && !article.county_identifier && !article.state_identifier && article.national_identifier) {
-    return 'National';
-  }
-  return 'Uncategorized';
-};
-
 const ArticleCard = ({ article, onSwap, onClick }) => {
   const articleImage = getArticleImage(article.title);
-  const articleCategory = getArticleCategory(article);
 
   return (
     <Card sx={{ position: 'relative', cursor: 'pointer' }}>
@@ -72,7 +58,7 @@ const ArticleCard = ({ article, onSwap, onClick }) => {
           borderRadius: '16px',
         }}
       >
-        <Typography variant="caption">{articleCategory}</Typography>
+        <Typography variant="caption">{article.category}</Typography>
       </Box>
     </Card>
   );

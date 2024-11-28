@@ -1,4 +1,5 @@
 const pool = require('../db/config');
+const { format } = require('date-fns-tz');
 
 const getTopThreeArticles = (articles) => {
     const result = [];
@@ -67,7 +68,6 @@ const getArticles = async (req, res) => {
   }
 
   try {
-    // Query to fetch all articles within the date range
     const query = `
       SELECT * 
       FROM articles 
@@ -87,7 +87,6 @@ const getArticles = async (req, res) => {
       });
     }
 
-    // Categorize articles based on their identifiers
     const categorizedArticles = {
       city: [],
       county: [],
@@ -96,32 +95,23 @@ const getArticles = async (req, res) => {
     };
 
     for (const article of articles) {
-      if (article.city_identifier && article.county_identifier && article.state_identifier && article.national_identifier) {
+      if (article.city_identifier && article.state_identifier) {
+        article.category = 'city';
         categorizedArticles.city.push(article);
-      } else if (!article.city_identifier && article.county_identifier && article.state_identifier && article.national_identifier) {
-        categorizedArticles.county.push(article);
-      } else if (!article.city_identifier && !article.county_identifier && article.state_identifier && article.national_identifier) {
-        categorizedArticles.state.push(article);
-      } else if (!article.city_identifier && !article.county_identifier && !article.state_identifier && article.national_identifier) {
+      } else if (article.national_identifier) {
+        article.category = 'national';
         categorizedArticles.national.push(article);
       }
     }
 
-    // Apply user filters to each category
     const filteredCityArticles = await applyFilters(categorizedArticles.city, userId);
-    const filteredCountyArticles = await applyFilters(categorizedArticles.county, userId);
-    const filteredStateArticles = await applyFilters(categorizedArticles.state, userId);
     const filteredNationalArticles = await applyFilters(categorizedArticles.national, userId);
 
-    // Combine the filtered results
     const filteredArticles = {
       city: filteredCityArticles,
-      county: filteredCountyArticles,
-      state: filteredStateArticles,
-      national: filteredNationalArticles,
+      national: filteredNationalArticles
     };
 
-    // Save user-article interactions (if userId is provided)
     if (userId) {
       for (const category of Object.keys(filteredArticles)) {
         for (const article of filteredArticles[category]) {
@@ -131,7 +121,6 @@ const getArticles = async (req, res) => {
       }
     }
 
-    // Respond with filtered and categorized articles
     res.json({ articles: filteredArticles });
   } catch (error) {
     console.error('Error fetching articles:', error);
@@ -153,44 +142,98 @@ const validateSwappedArticleInput = (city, state, userId, res) => {
   }
 }
 
-const getUnservedArticles = async (city, state, userId) => {
-  const unservedQuery = `
-    SELECT * FROM articles
-    WHERE city_identifier = ? AND state_identifier = ?
-    AND id NOT IN (
-      SELECT article_id FROM user_article_served WHERE user_id = ?
-    )
-    LIMIT 1
-  `;
+const getUnservedArticles = async (city, state, userId, category) => {
+  let unservedQuery;
+  let queryParams = [];
 
-  const [unservedArticles] = await pool.execute(unservedQuery, [city, state, userId]);
+  if (category === 'city') {
+    unservedQuery = `
+      SELECT * FROM articles
+      WHERE city_identifier = ? AND state_identifier = ?
+      AND id NOT IN (
+        SELECT article_id FROM user_article_served WHERE user_id = ?
+      )
+      LIMIT 1
+    `;
+      
+    queryParams = [city, state, userId];
+  } else if (category === 'national') {
+    unservedQuery = `
+      SELECT * FROM articles
+      WHERE national_identifier = 'USA'
+      AND id NOT IN (
+        SELECT article_id FROM user_article_served WHERE user_id = ?
+      )
+      LIMIT 1
+    `;
+    
+    queryParams = [userId];
+  }  else {
+    throw new Error(`Unsupported category: ${category}`);
+  }
+
+  const [unservedArticles] = await pool.execute(unservedQuery, queryParams);
 
   return unservedArticles;
 }
 
-const getServedArticles = async (userId) => {
-  const servedQuery = `
-    SELECT * FROM articles
-    WHERE id = (
-      SELECT article_id
-      FROM (
-        SELECT article_id, COUNT(*) AS times_served
-        FROM user_article_served
-        WHERE user_id = ?
-        AND article_id IN (
-          SELECT id FROM articles WHERE sourced >= NOW() - INTERVAL 1 WEEK
-        )
-        GROUP BY article_id
-        ORDER BY times_served ASC
-        LIMIT 1
-      ) AS subquery
-    )
-  `;
+const getServedArticles = async (userId, category, city = null, state = null) => {
+  let servedQuery;
+  let queryParams = [userId];
 
-  const [servedArticles] = await pool.execute(servedQuery, [userId]);
+  if (category === 'city') {
+    servedQuery = `
+      SELECT * FROM articles
+      WHERE id = (
+        SELECT article_id
+        FROM (
+          SELECT article_id, COUNT(*) AS times_served
+          FROM user_article_served
+          WHERE user_id = ?
+          AND article_id IN (
+            SELECT id FROM articles 
+            WHERE sourced >= NOW() - INTERVAL 1 WEEK
+            AND city_identifier = ?
+            AND state_identifier = ?
+          )
+          GROUP BY article_id
+          ORDER BY times_served ASC
+          LIMIT 1
+        ) AS subquery
+      )
+    `;
+
+    queryParams = [userId, city, state];
+  } else if (category === 'national') {
+    servedQuery = `
+      SELECT * FROM articles
+      WHERE id = (
+        SELECT article_id
+        FROM (
+          SELECT article_id, COUNT(*) AS times_served
+          FROM user_article_served
+          WHERE user_id = ?
+          AND article_id IN (
+            SELECT id FROM articles 
+            WHERE sourced >= NOW() - INTERVAL 1 WEEK
+            AND national_identifier = 'USA'
+          )
+          GROUP BY article_id
+          ORDER BY times_served ASC
+          LIMIT 1
+        ) AS subquery
+      )
+    `;
+
+    queryParams = [userId];
+  } else {
+    throw new Error(`Unsupported category: ${category}`);
+  }
+
+  const [servedArticles] = await pool.execute(servedQuery, queryParams);
 
   return servedArticles;
-}
+};
 
 const insertUserArticleServed = async (userId, articleId) => {
   const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
@@ -198,21 +241,25 @@ const insertUserArticleServed = async (userId, articleId) => {
 }
 
 const getSwappedArticle = async (req, res) => {
-  const { city, state, user_id: userId } = req.query;
+  const { city, state, user_id: userId, category } = req.query;
   validateSwappedArticleInput(city, state, userId, res);
 
   try {
-    const unservedArticles = await getUnservedArticles(city, state, userId);
-
+    const unservedArticles = await getUnservedArticles(city, state, userId, category);
+    
     if (unservedArticles.length > 0) {
+      unservedArticles[0].category = category;
+
       await insertUserArticleServed(userId, unservedArticles[0].id);
       res.status(200).json({ article: unservedArticles[0], message: null });
       return
     } 
   
-    const servedArticles = await getServedArticles(userId);
+    const servedArticles = await getServedArticles(userId, category, city, state);
 
     if (servedArticles.length > 0) {
+      servedArticles[0].category = category;
+
       await insertUserArticleServed(userId, servedArticles[0].id);
       res.status(200).json({ article: servedArticles[0], message: 'No unserved articles available. Showing previously served articles.' });
       return
@@ -233,6 +280,7 @@ const getSwappedArticle = async (req, res) => {
   }
 };
 
+// TO DO: this only creates national articles right now, not yet sure how to handle full city/regional/national logic
 const createArticle = async (req, res) => {
   const {
     source,
@@ -242,7 +290,6 @@ const createArticle = async (req, res) => {
     url,
     img,
     category,
-    sourced,
     days_found,
     city_identifier,
     county_identifier,
@@ -252,6 +299,10 @@ const createArticle = async (req, res) => {
   } = req.body;
 
   try {
+    const sourced = format(new Date(), 'yyyy-MM-dd HH:mm:ss', {
+      timeZone: 'America/Los_Angeles',
+    });
+  
     const query = `
       INSERT INTO articles (
         source, scraped, api, title, url, img, category, sourced, days_found,
@@ -259,7 +310,7 @@ const createArticle = async (req, res) => {
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    
+
     const values = [
       source,
       scraped,
@@ -270,11 +321,11 @@ const createArticle = async (req, res) => {
       category,
       sourced,
       days_found,
-      city_identifier,
-      county_identifier,
-      state_identifier,
-      national_identifier,
-      special_identifier,
+      '',
+      '',
+      '',
+      'USA',
+      '',
     ];
 
     await pool.execute(query, values);
