@@ -18,7 +18,7 @@ CREATE TABLE articles (
     county_identifier VARCHAR(255),
     state_identifier VARCHAR(255),
     national_identifier VARCHAR(255),
-    special_identifier VARCHAR(255)
+    special_identifier VARCHAR(255),
     UNIQUE (url)
 );
 

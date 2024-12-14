@@ -10,9 +10,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  const getUserLocation = async (userId) => {
+  const getUserLocation = async (userId, currentUserLocation) => {
     try {
+      if (currentUserLocation) {
+        return;
+      }
+  
       const result = await fetchUserLocation(userId);
+  
       if (result.location) {
         setUserLocation(result.location);
       } else {
@@ -31,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         setAuthAttempted(true);
         if (session.user?.id) {
-          await getUserLocation(session.user.id);
+          await getUserLocation(session.user.id, userLocation);
         }
       }
     };
@@ -44,7 +49,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         setAuthAttempted(true);
         if (session.user?.id) {
-          await getUserLocation(session.user.id);
+          await getUserLocation(session.user.id, !userLocation);
         }
       } else {
         setUser(null);

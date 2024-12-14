@@ -12,30 +12,38 @@ export const handleLogin = async () => {
   }
 };
 
-export const handleEmailLogin = async () => {
-  const email = prompt('Please enter your email:');
-  const password = prompt('Please enter your password:');
-
-  if (email && password) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      console.error('Error logging in with email:', error.message);
-    }
+export const handleEmailLogin = async (email, password, setIsAuthenticated) => {
+  if (!email || !password) {
+    console.error('Email and password are required.');
+    return { success: false, message: 'Email and password are required.' };
   }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    console.error('Error logging in with email:', error.message);
+    return { success: false, message: error.message };
+  }
+
+  setIsAuthenticated(true);
+  return { success: true, message: 'Logged in successfully.' };
 };
 
-export const handleEmailSignup = async () => {
-  const email = prompt('Please enter your email to sign up:');
-  const password = prompt('Please enter your password:');
-
-  if (email && password) {
-    const { error } = await supabase.auth.signUp({ email, password });
-
-    if (error) {
-      console.error('Error signing up with email:', error.message);
-    }
+export const handleEmailSignup = async (email, password, setIsAuthenticated) => {
+  if (!email || !password) {
+    console.error('Email and password are required.');
+    return { success: false, message: 'Email and password are required.' };
   }
+
+  const { error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    console.error('Error signing up with email:', error.message);
+    return { success: false, message: error.message };
+  }
+
+  setIsAuthenticated(true);
+  return { success: true, message: 'Signed up successfully.' };
 };
 
 export const handleLogout = async (setIsAuthenticated) => {
@@ -43,9 +51,9 @@ export const handleLogout = async (setIsAuthenticated) => {
 
   if (error) {
     console.error('Error logging out:', error.message);
-    return
+    return { success: false, message: error.message };
   }
 
   setIsAuthenticated(false);
+  return { success: true, message: 'Logged out successfully.' };
 };
-  

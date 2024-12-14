@@ -139,62 +139,6 @@ export function AdminForm() {
           error={!!errors.url}
           helperText={errors.url}
         />
-        {/* <TextField
-          fullWidth
-          label="Image URL"
-          name="img"
-          value={formData.img}
-          onChange={handleChange}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="Category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="City Identifier"
-          name="city_identifier"
-          value={formData.city_identifier}
-          onChange={handleChange}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="County Identifier"
-          name="county_identifier"
-          value={formData.county_identifier}
-          onChange={handleChange}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="State Identifier"
-          name="state_identifier"
-          value={formData.state_identifier}
-          onChange={handleChange}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="National Identifier"
-          name="national_identifier"
-          value={formData.national_identifier}
-          onChange={handleChange}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="Special Identifier"
-          name="special_identifier"
-          value={formData.special_identifier}
-          onChange={handleChange}
-          margin="normal"
-        /> */}
         <Button type="submit" variant="contained" color="primary" fullWidth>
           Submit Article
         </Button>

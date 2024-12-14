@@ -1,8 +1,82 @@
 import requests
+import os
 from bs4 import BeautifulSoup
-from datetime import datetime
+from urllib.parse import urlparse
+from datetime import datetime, timedelta
 from backend.scraping.scripts.scraper_functions import insert_article, check_article_exists, update_days_found, log_article_summary
 from backend.scraping.logging_config import logger
+from dotenv import load_dotenv
+
+load_dotenv()
+
+API_KEY = os.getenv('NEWS_API_KEY')
+
+if not API_KEY:
+    raise ValueError("API key for The News API is not set. Please configure the NEWS_API_KEY environment variable.")
+
+def fetch_news_api_articles():
+    """Fetch articles from The News API."""
+    logger.info(f"---- Starting articles News API fetch ----")
+    url = 'https://api.thenewsapi.com/v1/news/top'
+    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+
+    params = {
+        'api_token': API_KEY,
+        'locale': 'us',
+        'categories': 'general,science,business,tech,politics',
+        'exclude_categories': 'entertainment',
+        'language': 'en',
+        'published_on': yesterday,
+        'limit': 10
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
+        data = response.json()
+
+        if 'data' in data:
+            articles = data['data']
+            logger.info(f"Fetched {len(articles)} articles from The News API")
+
+            new_articles = []
+            existing_articles_count = 0
+
+            for article in articles:
+                title = article['title']
+                article_url = article['url']
+                parsed_url = urlparse(article_url)
+                source = f"{parsed_url.scheme}://{parsed_url.netloc}"
+
+                if check_article_exists(title, article_url):
+                    existing_articles_count += 1
+                    update_days_found(title, article_url)
+                else:
+                    article_data = {
+                        'source': source,
+                        'scraped': False,
+                        'api': True,
+                        'title': title,
+                        'url': article_url,
+                        'img': None,
+                        'category': None,
+                        'sourced': datetime.now().date(),
+                        'days_found': 1,
+                        'city_identifier': None,
+                        'county_identifier': None,
+                        'state_identifier': None,
+                        'national_identifier': 'USA',
+                        'special_identifier': None
+                    }
+                    insert_article(article_data)
+                    new_articles.append(title)
+
+            log_article_summary("The News API", new_articles, existing_articles_count)
+        else:
+            logger.warning("No articles found in response from The News API.")
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error fetching articles from The News API: {e}")
 
 def scrape_articles(url, title_element, title_class):
     logger.info(f"Starting URL: {url}")
@@ -43,7 +117,7 @@ def scrape_articles(url, title_element, title_class):
                         'title': title,
                         'url': article_url,
                         'img': None,
-                        'category': 'General',
+                        'category': None,
                         'sourced': datetime.now().date(),
                         'days_found': 1,
                         'city_identifier': 'Long Beach',
@@ -61,8 +135,9 @@ def scrape_articles(url, title_element, title_class):
     else:
         logger.error(f"Error fetching the page: {response.status_code}")
 
-logger.info(f"Starting scrape job at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+logger.info(f"<<<<--- Starting articles fetch at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} --->>>>")
 scrape_articles('https://longbeachize.com/', 'h3', 'entry-title')
 scrape_articles('https://lbpost.com/', 'h2', 'entry-title')
 scrape_articles('https://lbwatchdog.com/', 'h3', 'is-title')
+fetch_news_api_articles()
 logger.info(f"Fetch Complete")

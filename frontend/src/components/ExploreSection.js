@@ -29,7 +29,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     if (isAuthenticated && user) {
       await recordUserArticleClick(user.id, article.id);
     }
-    // Open the drawer and set the article URL
+
     setArticleUrl(article.url);
     setDrawerOpen(true);
   };
@@ -112,6 +112,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
 
   const renderContent = () => {
     if (!authAttempted) {
+      console.log('--- !authAttempted ---');
       return null;
     }
 
@@ -119,11 +120,16 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       return <WelcomeMessage />;
     }
 
+    // if (isAuthenticated && !articleFetchMade) {
+    //   return <WelcomeMessage />;
+    // }
+
     if (loading) {
       return <LoadingSpinner />;
     }
 
     if (articleFetchMade && articles.length > 0) {
+      // debugger;
       return (
         <ArticleList
           articles={articles}

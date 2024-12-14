@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { HeroSection } from './components/HeroSection';
 import { ExploreSection } from './components/ExploreSection';
 import { Topbar } from './components/Topbar';
@@ -7,9 +7,10 @@ import { AuthProvider } from './context/AuthContext';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
 import { AdminForm } from './components/AdminForm';
+import { SignupPage } from './pages/SignupPage';
 import ProtectedRoute from './utils/ProtectedRoute';
 
-function App() {
+function AppContent() {
   const [articles, setArticles] = useState([]);
   const [articleFetchMade, setArticleFetchMade] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,45 +31,58 @@ function App() {
     }
   }, []);
 
+  const location = useLocation();
+
+  if (location.pathname === '/signup') {
+    return <SignupPage/>
+  }
+
+  return (
+    <div>
+      <Topbar />
+      {errorMessage && (
+        <ErrorNotification
+          message={errorMessage}
+          onClose={() => setErrorMessage('')}
+        />
+      )}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <HeroSection
+                setArticles={setArticles}
+                articles={articles}
+                setArticleFetchMade={setArticleFetchMade}
+              />
+              <ExploreSection
+                articles={articles}
+                setArticles={setArticles}
+                articleFetchMade={articleFetchMade}
+              />
+            </>
+          }
+        />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminForm />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </div>
+  );
+}
+
+function App() {
   return (
     <AuthProvider>
       <Router>
-        <div>
-          <Topbar />
-          {errorMessage && (
-            <ErrorNotification
-              message={errorMessage}
-              onClose={() => setErrorMessage('')}
-            />
-          )}
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <HeroSection
-                    setArticles={setArticles}
-                    setArticleFetchMade={setArticleFetchMade}
-                  />
-                  <ExploreSection
-                    articles={articles}
-                    setArticles={setArticles}
-                    articleFetchMade={articleFetchMade}
-                  />
-                </>
-              }
-            />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <AdminForm />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
+        <AppContent />
       </Router>
     </AuthProvider>
   );
