@@ -5,13 +5,13 @@ import CloseIcon from '@mui/icons-material/Close';
 
 export function HeroSectionInput({
     handleOptionClick,
-    inputValue,
+    cityName,
     dropdownOpen,
     inputDisabled,
-    handleInputChange,
+    handleCityNameChange,
     error,
     handleClearLocation,
-    handleDropdownClick
+    handleCityDropdownClick
 }){
     const predefinedOptions = [
         { label: 'Long Beach, CA', city: 'Long Beach', state: 'CA' },
@@ -20,9 +20,9 @@ export function HeroSectionInput({
     ];
 
     const getDropdownOptions = () => {
-        if (inputValue.length >= 3) {
+        if (cityName.length >= 3) {
           const match = predefinedOptions.filter((option) =>
-            option.label.toLowerCase().includes(inputValue.toLowerCase())
+            option.label.toLowerCase().includes(cityName.toLowerCase())
           );
 
           return match.length > 0 ? match : [{ label: "Get your city's local news" }];
@@ -42,8 +42,8 @@ export function HeroSectionInput({
           <FormControl sx={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
             <TextField
               disabled={inputDisabled}
-              value={inputValue}
-              onChange={handleInputChange}
+              value={cityName}
+              onChange={handleCityNameChange}
               placeholder="Enter city name"
               variant="outlined"
               sx={{ backgroundColor: 'white', width: '100%' }}
@@ -60,7 +60,7 @@ export function HeroSectionInput({
                     ) : (
                       <ArrowDropDownIcon
                         sx={{ cursor: 'pointer' }}
-                        onClick={handleDropdownClick}
+                        onClick={handleCityDropdownClick}
                       />
                     )}
                   </InputAdornment>

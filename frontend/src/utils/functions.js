@@ -57,3 +57,11 @@ export const handleLogout = async (setIsAuthenticated) => {
   setIsAuthenticated(false);
   return { success: true, message: 'Logged out successfully.' };
 };
+
+export const emailRegex = (submittedEmail) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const result = emailRegex.test(submittedEmail);
+      
+  return result
+}

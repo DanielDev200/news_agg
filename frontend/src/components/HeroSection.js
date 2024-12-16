@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography} from '@mui/material';
+import { Box, Typography, Dialog, DialogTitle, DialogContent, TextField, Button, DialogActions} from '@mui/material';
 import { fetchArticles, saveUserLocation } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import {HeroSectionInput} from './HeroSectionInput';
+import { emailRegexTest } from '../utils/functions';
 
 export function HeroSection({ setArticles, setArticleFetchMade }) {
   const [initialFetchMade, setInitialFetchMade] = useState(false);
-  const [inputValue, setInputValue] = useState('');
+  const [cityName, setCityName] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState('');
   const [inputDisabled, setInputDisabled] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const { user, isAuthenticated, userLocation, setUserLocation } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated && userLocation && userLocation.city && userLocation.state && !initialFetchMade) {
-      setInputValue(`${userLocation.city}, ${userLocation.state}`);
-      handleSearch(userLocation.city, userLocation.state);
+      setCityName(`${userLocation.city}, ${userLocation.state}`);
+      handleArticleSearch(userLocation.city, userLocation.state);
       setInitialFetchMade(true);
       setInputDisabled(true);
     }
   }, [isAuthenticated, userLocation]);
 
-  const handleSearch = async (city, state) => {
+  const handleArticleSearch = async (city, state) => {
     setError('');
   
     const userId = user?.id || null;
@@ -30,7 +34,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   
     if (!articlesFetched) return; 
   
-    await saveLocationIfNecessary(isAuthenticated, userLocation, userId, city, state);
+    await saveUserLocationIfNecessary(isAuthenticated, userLocation, userId, city, state);
   };
 
   const fetchAndSetArticles = async (city, state, userId) => {
@@ -51,7 +55,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
     }
   };
   
-  const saveLocationIfNecessary = async (isAuthenticated, userLocation, userId, city, state) => {
+  const saveUserLocationIfNecessary = async (isAuthenticated, userLocation, userId, city, state) => {
     if (!isAuthenticated) {
       return;
     }
@@ -63,17 +67,17 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
     }
   };
 
-  const handleInputChange = ({ target: { value } }) => {
-    setInputValue(value);
+  const handleCityNameChange = ({ target: { value } }) => {
+    setCityName(value);
     setError('');
 
     setDropdownOpen(value ? true : false);
   };
 
-  const handleDropdownClick = () => setDropdownOpen(!dropdownOpen);
+  const handleCityDropdownClick = () => setDropdownOpen(!dropdownOpen);
 
   const handleClearLocation = () => {
-    setInputValue('');
+    setCityName('');
     setInputDisabled(false);
   };
 
@@ -83,17 +87,38 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
       return;
     }
 
-    setInputValue(label);
-    handleSearch(city, state);
+    setCityName(label);
+    handleArticleSearch(city, state);
     setDropdownOpen(false);
     setInputDisabled(true);
   };
 
-  const handleNoMatchClick = () => {
-    alert('Redirecting to city request form...');
-    setInputValue('');
+  const handleNoMatchClick = () => setModalOpen(true);
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEmail('');
     setDropdownOpen(false);
   };
+
+  const handleModalChange = () => setModalOpen(!modalOpen);
+
+  const handleEmailChange = ({ target: { value } }) => {
+    setEmail(value);
+    setEmailError('');
+  }
+
+  const handleEmailSubmit = () => {
+    const emailIsValid = emailRegexTest(email);
+
+    if (!emailIsValid) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    alert(`SUBMITTED`);
+    handleModalClose();
+  }
 
   return (
     <Box
@@ -114,14 +139,43 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
       </Typography>
       <HeroSectionInput
         handleOptionClick={handleOptionClick}
-        inputValue={inputValue}
+        cityName={cityName}
         dropdownOpen={dropdownOpen}
         inputDisabled={inputDisabled}
-        handleInputChange={handleInputChange}
-        handleDropdownClick={handleDropdownClick}
+        handleCityNameChange={handleCityNameChange}
+        handleCityDropdownClick={handleCityDropdownClick}
         error={error}
         handleClearLocation={handleClearLocation}
       />
+
+      {/* Submit City Email */}
+      <Dialog open={modalOpen} onClose={handleModalClose}>
+        <DialogTitle>Get your city's news</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" paragraph>
+            Enter your city's name and we'll get this sorted out
+          </Typography>
+          <TextField
+            label="Your Email Address"
+            type="email"
+            variant="outlined"
+            fullWidth
+            value={email}
+            onChange={handleEmailChange}
+            error={!!emailError}
+            helperText={emailError}
+            sx={{ marginTop: '16px' }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleModalChange} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleEmailSubmit} color="primary" variant="contained">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
