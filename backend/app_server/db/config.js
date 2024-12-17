@@ -1,4 +1,6 @@
-require('dotenv').config({ path: './.env' });
+require('dotenv');
+console.log('Loaded ENV Variables:', process.env);
+
 const mysql = require('mysql2/promise');
 
 // Create the connection pool using environment variables
