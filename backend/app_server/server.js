@@ -11,8 +11,17 @@ const userRoleRoutes = require('./routes/userRoleRoutes');
 const app = express();
 const PORT = process.env.PORT || 80;
 
+// Configure CORS dynamically
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['http://165.232.159.43', 'http://your-domain.com']
+  : ['http://localhost:3000'];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,4 +35,3 @@ app.use('/user-article-click', userArticleClickRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
