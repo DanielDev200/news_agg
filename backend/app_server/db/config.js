@@ -1,4 +1,5 @@
-require('dotenv').config(); // Add the .config() call
+console.log('Looking for .env file at:', require('path').resolve(__dirname, '../.env'));
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 console.log('Loaded ENV Variables:', process.env);
 
 const mysql = require('mysql2/promise');
