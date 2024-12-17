@@ -1,4 +1,4 @@
-require('dotenv');
+require('dotenv').config(); // Add the .config() call
 console.log('Loaded ENV Variables:', process.env);
 
 const mysql = require('mysql2/promise');
