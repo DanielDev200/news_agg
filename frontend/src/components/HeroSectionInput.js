@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react';
 import { Box, TextField, MenuItem, FormControl, InputAdornment, Divider } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import CloseIcon from '@mui/icons-material/Close';
@@ -13,6 +13,29 @@ export function HeroSectionInput({
     handleClearLocation,
     handleCityDropdownClick
 }){
+    const dropdownRef = useRef(null);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+      const handleOutsideClick = (event) => {
+          if (
+              dropdownOpen &&
+              dropdownRef.current &&
+              !dropdownRef.current.contains(event.target) &&
+              inputRef.current &&
+              !inputRef.current.contains(event.target)
+          ) {
+              handleCityDropdownClick(); // Close the dropdown
+          }
+      };
+
+      document.addEventListener('mousedown', handleOutsideClick);
+
+      return () => {
+          document.removeEventListener('mousedown', handleOutsideClick);
+      };
+    }, [dropdownOpen, handleCityDropdownClick]);
+
     const predefinedOptions = [
         { label: 'Long Beach, CA', city: 'Long Beach', state: 'CA' },
         { label: 'Monterey Park, CA', city: 'Monterey Park', state: 'CA' },
@@ -41,6 +64,7 @@ export function HeroSectionInput({
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2, gap: 2, width: '100%' }}>
           <FormControl sx={{ width: '100%', maxWidth: '400px', position: 'relative' }}>
             <TextField
+              ref={inputRef}
               disabled={inputDisabled}
               value={cityName}
               onChange={handleCityNameChange}
@@ -69,6 +93,7 @@ export function HeroSectionInput({
             />
             {dropdownOpen && options.length > 0 && (
               <Box
+                ref={dropdownRef}
                 sx={{
                   position: 'absolute',
                   top: '100%',
