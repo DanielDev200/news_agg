@@ -38,8 +38,12 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   };
 
   const fetchAndSetArticles = async (city, state, userId) => {
+    console.log('info', {city, state, userId});
+
     try {
       const { articles, error: fetchError } = await fetchArticles(city, state, userId);
+
+      console.log('articles', articles);
   
       if (fetchError) {
         setError(fetchError);
