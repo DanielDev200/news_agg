@@ -84,7 +84,7 @@ def update_days_found(title, link):
         if result:
             sourced = result[0]
 
-            today = datetime.now().date()
+            today = datetime.now()
             days_passed = (today - sourced).days if (today - sourced).days > 0 else 1
 
             update_query = """
@@ -99,4 +99,3 @@ def update_days_found(title, link):
         connection.close()
     except Exception as e:
         logger.error(f"Error updating days found for article: {title}, {link}. Error: {e}")
-
