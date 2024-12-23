@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 80;
 
 // Configure CORS dynamically
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['http://165.232.159.43', 'http://your-domain.com']
+  ? ['https://almostallthe.news', 'https://www.almostallthe.news']
   : ['http://localhost:3000'];
 
 app.use(cors({
