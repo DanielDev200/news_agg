@@ -2,28 +2,34 @@ const pool = require('../db/config');
 const { format } = require('date-fns-tz');
 
 const getTopThreeArticles = (articles) => {
-    const result = [];
-    const sourcesSet = new Set();
-  
-    for (const article of articles) {
-      if (result.length >= 3) {
-        break;
-      }
-  
-      if (!sourcesSet.has(article.source)) {
-        result.push(article);
-        sourcesSet.add(article.source);
-      }
-    }
-  
-    if (result.length < 3) {
-      const remainingArticles = articles.filter(article => !result.includes(article));
+  if (articles.length < 3) {
+    return articles.slice(0, 3);
+  }
 
-      result.push(...remainingArticles.slice(0, 3 - result.length));
+  const result = [];
+  const sourcesSet = new Set();
+
+  for (const article of articles) {
+    if (result.length >= 3) {
+      break;
     }
-  
-    return result;
+
+    if (!sourcesSet.has(article.source)) {
+      result.push(article);
+      sourcesSet.add(article.source);
+    }
+  }
+
+  if (result.length < 3) {
+    const remainingArticles = articles.filter(
+      article => !sourcesSet.has(article.source)
+    );
+    result.push(...remainingArticles.slice(0, 3 - result.length));
+  }
+
+  return result;
 };
+
 
 const filterClickedArticles = async (articles, userId) => {
     if (!userId) {
@@ -31,7 +37,7 @@ const filterClickedArticles = async (articles, userId) => {
     }
 
     try {
-        const query = `SELECT article_id FROM user_article_clicks WHERE user_id = ?`;
+        const query = `select article_id from user_article_clicks where user_id = ? and created_at >= now() - interval 30 day`;
         const [clickedArticles] = await pool.execute(query, [userId]);
         const clickedArticleIds = clickedArticles.map((row) => row.article_id);
 
@@ -54,80 +60,108 @@ const applyFilters = async (articles, userId) => {
     return topThreeArticles;
 };
 
-const getArticles = async (req, res) => {
-  const { city, state, user_id: userId } = req.query;
+const validateParams = (city, state) => {
+  const missingParams = [];
+  if (!city) missingParams.push('city');
+  if (!state) missingParams.push('state');
+  return missingParams;
+};
 
-  if (!city || !state) {
-    const missingParams = [];
-    if (!city) missingParams.push('city');
-    if (!state) missingParams.push('state');
+const respondWithMissingParams = (res, missingParams) => {
+  return res.status(400).json({
+    error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`,
+  });
+};
 
-    return res.status(400).json({
-      error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`,
-    });
-  }
+const fetchArticles = async () => {
+  const query = `select * from articles where sourced between curdate() - interval 14 day and curdate() order by sourced desc`;
+  const [articles] = await pool.execute(query);
+  return articles;
+};
 
-  try {
-    const query = `
-      SELECT * 
-      FROM articles 
-      WHERE sourced BETWEEN CURDATE() - INTERVAL 1 DAY AND CURDATE()
-    `;
-    const [articles] = await pool.execute(query);
-
-    if (articles.length === 0) {
-      return res.json({
-        message: 'No articles found within the specified timeframe.',
-        articles: {
-          city: [],
-          county: [],
-          state: [],
-          national: [],
-        },
-      });
-    }
-
-    const categorizedArticles = {
+const respondWithNoArticles = (res) => {
+  return res.json({
+    message: 'No articles found within the specified timeframe.',
+    articles: {
       city: [],
       county: [],
       state: [],
       national: [],
-    };
-
-    for (const article of articles) {
-      if (article.city_identifier && article.state_identifier) {
-        article.category = 'city';
-        categorizedArticles.city.push(article);
-      } else if (article.national_identifier) {
-        article.category = 'national';
-        categorizedArticles.national.push(article);
-      }
-    }
-
-    const filteredCityArticles = await applyFilters(categorizedArticles.city, userId);
-    const filteredNationalArticles = await applyFilters(categorizedArticles.national, userId);
-
-    const filteredArticles = {
-      city: filteredCityArticles,
-      national: filteredNationalArticles
-    };
-
-    if (userId) {
-      for (const category of Object.keys(filteredArticles)) {
-        for (const article of filteredArticles[category]) {
-          const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
-          await pool.execute(insertQuery, [userId, article.id]);
-        }
-      }
-    }
-
-    res.json({ articles: filteredArticles });
-  } catch (error) {
-    console.error('Error fetching articles:', error);
-    res.status(500).json({ error: 'An error occurred while fetching articles.' });
-  }
+    },
+  });
 };
 
+const categorizeArticles = (articles) => {
+  return articles.reduce(
+    (categories, article) => {
+      if (article.city_identifier && article.state_identifier) {
+        article.category = 'city';
+        categories.city.push(article);
+      } else if (article.national_identifier) {
+        article.category = 'national';
+        categories.national.push(article);
+      }
+      return categories;
+    },
+    { city: [], county: [], state: [], national: [] }
+  );
+};
+
+const filterArticlesByUser = async (categorizedArticles, userId) => {
+  const filteredCityArticles = await applyFilters(categorizedArticles.city, userId);
+  const filteredNationalArticles = await applyFilters(categorizedArticles.national, userId);
+
+  return {
+    city: filteredCityArticles,
+    national: filteredNationalArticles,
+  };
+};
+
+const logArticlesServed = async (filteredArticles, userId) => {
+  const logPromises = Object.values(filteredArticles).flatMap((articles) =>
+    articles.map((article) =>
+      pool.execute(`INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`, [
+        userId,
+        article.id,
+      ])
+    )
+  );
+  await Promise.all(logPromises);
+};
+
+const handleError = (res, error) => {
+  console.error('Error fetching articles:', error);
+  return res.status(500).json({ error: 'An error occurred while fetching articles.' });
+};
+
+const getArticles = async (req, res) => {
+  const { city, state, user_id: userId } = req.query;
+
+  const missingParams = validateParams(city, state);
+
+  if (missingParams.length > 0) {
+    return respondWithMissingParams(res, missingParams);
+  }
+
+  try {
+    const articles = await fetchArticles();
+
+    if (articles.length === 0) {
+      return respondWithNoArticles(res);
+    }
+
+    const categorizedArticles = categorizeArticles(articles);
+    const filteredArticles = await filterArticlesByUser(categorizedArticles, userId);
+
+    if (userId) {
+      await logArticlesServed(filteredArticles, userId);
+    }
+
+    return res.json({ articles: filteredArticles });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
 
 const validateSwappedArticleInput = (city, state, userId, res) => {
   if (!city || !state || !userId) {
