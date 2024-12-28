@@ -3,7 +3,13 @@ import os
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
-from backend.scraping.scripts.scraper_functions import insert_article, check_article_exists, update_days_found, log_article_summary
+from backend.scraping.scripts.scraper_functions import (
+    insert_article,
+    check_article_exists,
+    update_days_found,
+    log_article_summary,
+    filter_articles_with_gpt
+)
 from backend.scraping.logging_config import logger
 from dotenv import load_dotenv
 
@@ -24,20 +30,25 @@ def fetch_news_api_articles():
         'api_token': API_KEY,
         'locale': 'us',
         'categories': 'general,science,business,tech,politics',
-        'exclude_categories': 'entertainment',
+        'exclude_categories': 'entertainment,sports,travel,health',
+        'exclude_domains': 'benzinga,breitbart,rt',
         'language': 'en',
         'published_on': yesterday,
-        'limit': 10
+        'limit': 25
     }
 
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
+        response.raise_for_status()
         data = response.json()
 
         if 'data' in data:
             articles = data['data']
             logger.info(f"Fetched {len(articles)} articles from The News API")
+
+            # Filter articles with GPT
+            filtered_response = filter_articles_with_gpt(articles)
+            logger.info(f"Filtered Articles:\n{filtered_response}")
 
             new_articles = []
             existing_articles_count = 0
