@@ -1,37 +1,63 @@
 const pool = require('../db/config');
 const { format } = require('date-fns-tz');
 
-const getTopThreeArticles = (articles) => {
-  if (articles.length < 3) {
-    return articles.slice(0, 3);
-  }
 
-  const result = [];
-  const sourcesSet = new Set();
 
-  for (const article of articles) {
-    if (result.length >= 3) {
-      break;
-    }
+const getArticlesFunctions = {
+  validateParams: (city, state) => {
+    const missingParams = [];
 
-    if (!sourcesSet.has(article.source)) {
-      result.push(article);
-      sourcesSet.add(article.source);
-    }
-  }
+    if (!city) missingParams.push('city');
 
-  if (result.length < 3) {
-    const remainingArticles = articles.filter(
-      article => !sourcesSet.has(article.source)
+    if (!state) missingParams.push('state');
+
+    return missingParams;
+  },
+  logArticlesServed: async (filteredArticles, userId) => {
+    const logPromises = Object.values(filteredArticles).flatMap((articles) =>
+      articles.map((article) =>
+        pool.execute(`INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`, [
+          userId,
+          article.id,
+        ])
+      )
     );
-    result.push(...remainingArticles.slice(0, 3 - result.length));
-  }
-
-  return result;
-};
-
-
-const filterClickedArticles = async (articles, userId) => {
+    await Promise.all(logPromises);
+  },
+  handleError: (res, error) => {
+    console.error('Error fetching articles:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching articles.' });
+  },
+  filterArticlesByUser: async (categorizedArticles, userId) => {
+    const filteredCityArticles = await getArticlesFunctions.applyFilters(categorizedArticles.city, userId);
+    const filteredNationalArticles = await getArticlesFunctions.applyFilters(categorizedArticles.national, userId);
+  
+    return {
+      city: filteredCityArticles,
+      national: filteredNationalArticles,
+    };
+  },
+  categorizeArticles: (articles) => {
+    return articles.reduce(
+      (categories, article) => {
+        if (article.city_identifier && article.state_identifier) {
+          article.category = 'city';
+          categories.city.push(article);
+        } else if (article.national_identifier) {
+          article.category = 'national';
+          categories.national.push(article);
+        }
+        return categories;
+      },
+      { city: [], county: [], state: [], national: [] }
+    );
+  },
+  fetchArticles: async () => {
+    const query = `select * from articles where sourced between curdate() - interval 14 day and curdate() order by sourced desc`;
+    const [articles] = await pool.execute(query);
+    return articles;
+  },
+  filterClickedArticles: async (articles, userId) => {
     if (!userId) {
       return articles;
     }
@@ -46,255 +72,221 @@ const filterClickedArticles = async (articles, userId) => {
         console.error('Error filtering clicked articles:', error);
         return articles;
     }
-};
-
-const applyFilters = async (articles, userId) => {
+  },
+  applyFilters: async (articles, userId) => {
     let filteredArticles = articles;
 
     if (userId) {
-      filteredArticles = await filterClickedArticles(filteredArticles, userId);
+      filteredArticles = await getArticlesFunctions.filterClickedArticles(filteredArticles, userId);
     }
 
-    const topThreeArticles = getTopThreeArticles(filteredArticles);
+    const topThreeArticles = getArticlesFunctions.getTopThreeArticles(filteredArticles);
 
     return topThreeArticles;
-};
-
-const validateParams = (city, state) => {
-  const missingParams = [];
-  if (!city) missingParams.push('city');
-  if (!state) missingParams.push('state');
-  return missingParams;
-};
-
-const respondWithMissingParams = (res, missingParams) => {
-  return res.status(400).json({
-    error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`,
-  });
-};
-
-const fetchArticles = async () => {
-  const query = `select * from articles where sourced between curdate() - interval 14 day and curdate() order by sourced desc`;
-  const [articles] = await pool.execute(query);
-  return articles;
-};
-
-const respondWithNoArticles = (res) => {
-  return res.json({
-    message: 'No articles found within the specified timeframe.',
-    articles: {
-      city: [],
-      county: [],
-      state: [],
-      national: [],
-    },
-  });
-};
-
-const categorizeArticles = (articles) => {
-  return articles.reduce(
-    (categories, article) => {
-      if (article.city_identifier && article.state_identifier) {
-        article.category = 'city';
-        categories.city.push(article);
-      } else if (article.national_identifier) {
-        article.category = 'national';
-        categories.national.push(article);
+  },
+  getTopThreeArticles: (articles) => {
+    if (articles.length < 3) {
+      return articles.slice(0, 3);
+    }
+  
+    const result = [];
+    const sourcesSet = new Set();
+  
+    for (const article of articles) {
+      if (result.length >= 3) {
+        break;
       }
-      return categories;
-    },
-    { city: [], county: [], state: [], national: [] }
-  );
-};
-
-const filterArticlesByUser = async (categorizedArticles, userId) => {
-  const filteredCityArticles = await applyFilters(categorizedArticles.city, userId);
-  const filteredNationalArticles = await applyFilters(categorizedArticles.national, userId);
-
-  return {
-    city: filteredCityArticles,
-    national: filteredNationalArticles,
-  };
-};
-
-const logArticlesServed = async (filteredArticles, userId) => {
-  const logPromises = Object.values(filteredArticles).flatMap((articles) =>
-    articles.map((article) =>
-      pool.execute(`INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`, [
-        userId,
-        article.id,
-      ])
-    )
-  );
-  await Promise.all(logPromises);
-};
-
-const handleError = (res, error) => {
-  console.error('Error fetching articles:', error);
-  return res.status(500).json({ error: 'An error occurred while fetching articles.' });
-};
+  
+      if (!sourcesSet.has(article.source)) {
+        result.push(article);
+        sourcesSet.add(article.source);
+      }
+    }
+  
+    if (result.length < 3) {
+      const remainingArticles = articles.filter(
+        article => !sourcesSet.has(article.source)
+      );
+      result.push(...remainingArticles.slice(0, 3 - result.length));
+    }
+  
+    return result;
+  }
+}
 
 const getArticles = async (req, res) => {
   const { city, state, user_id: userId } = req.query;
 
-  const missingParams = validateParams(city, state);
+  const missingParams = getArticlesFunctions.validateParams(city, state);
 
   if (missingParams.length > 0) {
-    return respondWithMissingParams(res, missingParams);
+    return res.status(400).json({error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`});
   }
 
   try {
-    const articles = await fetchArticles();
+    const articles = await getArticlesFunctions.fetchArticles();
 
     if (articles.length === 0) {
-      return respondWithNoArticles(res);
+      return res.json({
+        message: 'No articles found within the specified timeframe.',
+        articles: {
+          city: [],
+          county: [],
+          state: [],
+          national: [],
+        },
+      });
     }
 
-    const categorizedArticles = categorizeArticles(articles);
-    const filteredArticles = await filterArticlesByUser(categorizedArticles, userId);
+    const categorizedArticles = getArticlesFunctions.categorizeArticles(articles);
+    const filteredArticles = await getArticlesFunctions.filterArticlesByUser(categorizedArticles, userId);
 
     if (userId) {
-      await logArticlesServed(filteredArticles, userId);
+      await getArticlesFunctions.logArticlesServed(filteredArticles, userId);
     }
 
     return res.json({ articles: filteredArticles });
   } catch (error) {
-    return handleError(res, error);
+    return getArticlesFunctions.handleError(res, error);
   }
 };
 
-const validateSwappedArticleInput = (city, state, userId, res) => {
-  if (!city || !state || !userId) {
+const swappedArticleFunctions = {
+  validateSwappedArticleInput: (city, state, userId) => {
     const missingParams = [];
-    if (!city) missingParams.push('city');
-    if (!state) missingParams.push('state');
-    if (!userId) missingParams.push('userId');
 
-    return res.status(400).json({
-      error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`,
-    });
-  }
-}
+    if (!city || !state || !userId) {
+      if (!city) missingParams.push('city');
+      if (!state) missingParams.push('state');
+      if (!userId) missingParams.push('userId');
+    }
 
-const getUnservedArticles = async (city, state, userId, category) => {
-  let unservedQuery;
-  let queryParams = [];
-
-  if (category === 'city') {
-    unservedQuery = `
-      SELECT * FROM articles
-      WHERE city_identifier = ? AND state_identifier = ?
-      AND id NOT IN (
-        SELECT article_id FROM user_article_served WHERE user_id = ?
-      )
-      LIMIT 1
-    `;
+    return missingParams;
+  },
+  getUnservedArticles: async (city, state, userId, category) => {
+    let unservedQuery;
+    let queryParams = [];
+  
+    if (category === 'city') {
+      unservedQuery = `
+        SELECT * FROM articles
+        WHERE city_identifier = ? AND state_identifier = ?
+        AND id NOT IN (
+          SELECT article_id FROM user_article_served WHERE user_id = ?
+        )
+        LIMIT 1
+      `;
+        
+      queryParams = [city, state, userId];
+    } else if (category === 'national') {
+      unservedQuery = `
+        SELECT * FROM articles
+        WHERE national_identifier = 'USA'
+        AND id NOT IN (
+          SELECT article_id FROM user_article_served WHERE user_id = ?
+        )
+        LIMIT 1
+      `;
       
-    queryParams = [city, state, userId];
-  } else if (category === 'national') {
-    unservedQuery = `
-      SELECT * FROM articles
-      WHERE national_identifier = 'USA'
-      AND id NOT IN (
-        SELECT article_id FROM user_article_served WHERE user_id = ?
-      )
-      LIMIT 1
-    `;
-    
-    queryParams = [userId];
-  }  else {
-    throw new Error(`Unsupported category: ${category}`);
+      queryParams = [userId];
+    }  else {
+      throw new Error(`Unsupported category: ${category}`);
+    }
+  
+    const [unservedArticles] = await pool.execute(unservedQuery, queryParams);
+  
+    return unservedArticles;
+  },
+  logArticleServed: async (userId, articleId) => {
+    const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
+    await pool.execute(insertQuery, [userId, articleId]);
+  },
+  getServedArticles: async (userId, category, city = null, state = null) => {
+    let servedQuery;
+    let queryParams = [userId];
+  
+    if (category === 'city') {
+      servedQuery = `
+        SELECT * FROM articles
+        WHERE id = (
+          SELECT article_id
+          FROM (
+            SELECT article_id, COUNT(*) AS times_served
+            FROM user_article_served
+            WHERE user_id = ?
+            AND article_id IN (
+              SELECT id FROM articles 
+              WHERE sourced >= NOW() - INTERVAL 1 WEEK
+              AND city_identifier = ?
+              AND state_identifier = ?
+            )
+            GROUP BY article_id
+            ORDER BY times_served ASC
+            LIMIT 1
+          ) AS subquery
+        )
+      `;
+  
+      queryParams = [userId, city, state];
+    } else if (category === 'national') {
+      servedQuery = `
+        SELECT * FROM articles
+        WHERE id = (
+          SELECT article_id
+          FROM (
+            SELECT article_id, COUNT(*) AS times_served
+            FROM user_article_served
+            WHERE user_id = ?
+            AND article_id IN (
+              SELECT id FROM articles 
+              WHERE sourced >= NOW() - INTERVAL 1 WEEK
+              AND national_identifier = 'USA'
+            )
+            GROUP BY article_id
+            ORDER BY times_served ASC
+            LIMIT 1
+          ) AS subquery
+        )
+      `;
+  
+      queryParams = [userId];
+    } else {
+      throw new Error(`Unsupported category: ${category}`);
+    }
+  
+    const [servedArticles] = await pool.execute(servedQuery, queryParams);
+  
+    return servedArticles;
   }
-
-  const [unservedArticles] = await pool.execute(unservedQuery, queryParams);
-
-  return unservedArticles;
-}
-
-const getServedArticles = async (userId, category, city = null, state = null) => {
-  let servedQuery;
-  let queryParams = [userId];
-
-  if (category === 'city') {
-    servedQuery = `
-      SELECT * FROM articles
-      WHERE id = (
-        SELECT article_id
-        FROM (
-          SELECT article_id, COUNT(*) AS times_served
-          FROM user_article_served
-          WHERE user_id = ?
-          AND article_id IN (
-            SELECT id FROM articles 
-            WHERE sourced >= NOW() - INTERVAL 1 WEEK
-            AND city_identifier = ?
-            AND state_identifier = ?
-          )
-          GROUP BY article_id
-          ORDER BY times_served ASC
-          LIMIT 1
-        ) AS subquery
-      )
-    `;
-
-    queryParams = [userId, city, state];
-  } else if (category === 'national') {
-    servedQuery = `
-      SELECT * FROM articles
-      WHERE id = (
-        SELECT article_id
-        FROM (
-          SELECT article_id, COUNT(*) AS times_served
-          FROM user_article_served
-          WHERE user_id = ?
-          AND article_id IN (
-            SELECT id FROM articles 
-            WHERE sourced >= NOW() - INTERVAL 1 WEEK
-            AND national_identifier = 'USA'
-          )
-          GROUP BY article_id
-          ORDER BY times_served ASC
-          LIMIT 1
-        ) AS subquery
-      )
-    `;
-
-    queryParams = [userId];
-  } else {
-    throw new Error(`Unsupported category: ${category}`);
-  }
-
-  const [servedArticles] = await pool.execute(servedQuery, queryParams);
-
-  return servedArticles;
-};
-
-const insertUserArticleServed = async (userId, articleId) => {
-  const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
-  await pool.execute(insertQuery, [userId, articleId]);
 }
 
 const getSwappedArticle = async (req, res) => {
   const { city, state, user_id: userId, category } = req.query;
-  validateSwappedArticleInput(city, state, userId, res);
+  const missingParams = swappedArticleFunctions.validateSwappedArticleInput(city, state, userId);
+
+  if (missingParams.length > 0) {
+    return res.status(400).json({
+      error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`,
+    });
+  }
 
   try {
-    const unservedArticles = await getUnservedArticles(city, state, userId, category);
+    const unservedArticles = await swappedArticleFunctions.getUnservedArticles(city, state, userId, category);
     
     if (unservedArticles.length > 0) {
       unservedArticles[0].category = category;
 
-      await insertUserArticleServed(userId, unservedArticles[0].id);
+      await swappedArticleFunctions.logArticleServed(userId, unservedArticles[0].id);
       res.status(200).json({ article: unservedArticles[0], message: null });
       return
     } 
   
-    const servedArticles = await getServedArticles(userId, category, city, state);
+    const servedArticles = await swappedArticleFunctions.getServedArticles(userId, category, city, state);
 
     if (servedArticles.length > 0) {
       servedArticles[0].category = category;
 
-      await insertUserArticleServed(userId, servedArticles[0].id);
+      await swappedArticleFunctions.logArticleServed(userId, servedArticles[0].id);
       res.status(200).json({ article: servedArticles[0], message: 'No unserved articles available. Showing previously served articles.' });
       return
     } 
@@ -304,8 +296,6 @@ const getSwappedArticle = async (req, res) => {
         message: 'No articles available for the specified parameters.',
       });
     }
-
-    res.status(200).json({ article, message });
   } catch (error) {
     console.error('Error fetching article:', error);
     res.status(500).json({

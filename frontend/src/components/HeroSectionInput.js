@@ -25,7 +25,7 @@ export function HeroSectionInput({
               inputRef.current &&
               !inputRef.current.contains(event.target)
           ) {
-              handleCityDropdownClick(); // Close the dropdown
+              handleCityDropdownClick();
           }
       };
 

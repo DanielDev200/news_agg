@@ -7,7 +7,8 @@ import { AuthProvider } from './context/AuthContext';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
 import { AdminForm } from './components/AdminForm';
-import { SignupPage } from './pages/SignupPage';
+import { SignInPage } from './pages/SignInPage';
+import { SignUpPage } from './pages/SignUpPage';
 import { About } from './pages/About';
 import ProtectedRoute from './utils/ProtectedRoute';
 
@@ -34,8 +35,16 @@ function AppContent() {
 
   const location = useLocation();
 
+  if (location.pathname === '/signin') {
+    return <SignInPage/>
+  }
+
   if (location.pathname === '/signup') {
-    return <SignupPage/>
+    return (
+      <AuthProvider>
+        <SignUpPage/>
+      </AuthProvider>
+    )
   }
 
   return (

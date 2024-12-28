@@ -1,6 +1,5 @@
 import React from 'react';
-import { Typography, Grid as Grid2, List, ListItem, ListItemText, ListItemIcon, Box } from '@mui/material';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import { Typography, Grid as Grid2, Box } from '@mui/material';
 
 const WelcomeMessage = () => (
   <Grid2 item xs={12}>

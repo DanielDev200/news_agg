@@ -3,6 +3,7 @@ import { Container, Box, Typography, Drawer} from '@mui/material';
 import LoadingSpinner from './LoadingSpinner';
 import ArticleList from './ArticleList';
 import WelcomeMessage from './WelcomeMessage';
+import WelcomeMessageAuthed from './WelcomeMessageAuthed';
 import { useAuth } from '../context/AuthContext';
 import { recordUserArticleClick, fetchSwappedArticle } from '../api/api';
 import PopupDialog from './PopupDialog';
@@ -119,9 +120,9 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       return <WelcomeMessage />;
     }
 
-    // if (isAuthenticated && !articleFetchMade) {
-    //   return <WelcomeMessage />;
-    // }
+    if (isAuthenticated && !articleFetchMade) {
+      return <WelcomeMessageAuthed />;
+    }
 
     if (loading) {
       return <LoadingSpinner />;

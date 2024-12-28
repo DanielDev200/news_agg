@@ -14,7 +14,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const { user, isAuthenticated, userLocation, setUserLocation } = useAuth();
+  const { user, isAuthenticated, userLocation } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated && userLocation && userLocation.city && userLocation.state && !initialFetchMade) {
@@ -83,7 +83,6 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
 
   const handleOptionClick = ({label, city, state}) => {
     if (label === "Get your city's local news") {
-      handleNoMatchClick();
       return;
     }
 
@@ -91,6 +90,10 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
     handleArticleSearch(city, state);
     setDropdownOpen(false);
     setInputDisabled(true);
+
+    if (!isAuthenticated) {
+      localStorage.setItem("selectedCity", JSON.stringify({ city, state }));
+    }
   };
 
   const handleNoMatchClick = () => setModalOpen(true);
