@@ -38,13 +38,9 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   };
 
   const fetchAndSetArticles = async (city, state, userId) => {
-    console.log('info', {city, state, userId});
-
     try {
       const { articles, error: fetchError } = await fetchArticles(city, state, userId);
 
-      console.log('articles', articles);
-  
       if (fetchError) {
         setError(fetchError);
         return false;
@@ -135,11 +131,8 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
         padding: '40px 20px',
       }}
     >
-      <Typography variant="h4" gutterBottom>
-        Just Enough News
-      </Typography>
-      <Typography variant="h6" gutterBottom>
-        Get a better balance of news
+      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
+        Find your city and start getting pretty much all of the news:
       </Typography>
       <HeroSectionInput
         handleOptionClick={handleOptionClick}
@@ -151,8 +144,6 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
         error={error}
         handleClearLocation={handleClearLocation}
       />
-
-      {/* Submit City Email */}
       <Dialog open={modalOpen} onClose={handleModalClose}>
         <DialogTitle>Get your city's news</DialogTitle>
         <DialogContent>

@@ -1,123 +1,135 @@
 import React, { useState } from "react";
-import { Container, Box, Typography, TextField, Button, Link, Alert } from "@mui/material";
+import { Container, Box, Typography, TextField, Button, Link } from "@mui/material";
 import { handleEmailSignup, handleEmailLogin } from "../utils/functions";
+import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from "notistack";
+import { useAuth } from '../context/AuthContext';
 
-export function SignupPage(){
+export function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { setIsAuthenticated, getUserLocation } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!name) {
-      setErrorMessage("Name is required.");
+  
+    if (!email) {
+      setErrorMessage("Email is required.");
       return;
     }
-
-    const signupResponse = await handleEmailSignup(email, password, setIsAuthenticated);
-
-    if (signupResponse.success) {
-      setErrorMessage("");
-
-      const loginResponse = await handleEmailLogin(email, password, setIsAuthenticated);
-
-      if (loginResponse.success) {
-        setSuccessMessage("Signed up and logged in successfully.");
-      } else {
-        setErrorMessage(`Signup successful, but login failed: ${loginResponse.message}`);
-      }
+  
+    const { success, message, userId } = await handleEmailLogin(email, password);
+  
+    if (success) {
+      setIsAuthenticated(true);
+      await getUserLocation(userId);
+      enqueueSnackbar("Logged in successfully, sending you to the news...", {
+        variant: "success",
+        autoHideDuration: 3000,
+        preventDuplicate: true,
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        },
+        onClose: () => navigate("/")
+      });
     } else {
-      setErrorMessage(signupResponse.message);
-      setSuccessMessage("");
+      setErrorMessage(`Login failed: ${message}`);
     }
   };
 
   return (
     <Container
-      maxWidth="sm"
+      maxWidth="xs"
       sx={{
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "#f5f7fa",
+        bgcolor: "#fff",
         textAlign: "center",
       }}
     >
-      <Box sx={{ width: "100%" }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Create your free account
+      <Box sx={{ width: "100%", marginTop: "-64px" }}>
+        <Typography variant="h4" fontWeight="bold" color="#000" gutterBottom>
+          Almost All The News
         </Typography>
-        {errorMessage && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorMessage}
-          </Alert>
-        )}
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {successMessage}
-          </Alert>
-        )}
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Sign in
+        </Typography>
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          using your account
+        </Typography>
         <Box
           component="form"
           noValidate
           autoComplete="off"
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
           onSubmit={handleSubmit}
+          sx={{ mt: 3 }}
         >
           <TextField
-            id="name"
-            label="Name"
-            placeholder="Wade Wilson"
-            variant="outlined"
-            fullWidth
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <TextField
             id="email"
-            label="Email"
-            placeholder="wade.wilson@hotmail.com"
-            type="email"
+            placeholder="Username, email, or mobile"
             variant="outlined"
             fullWidth
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            error={!!errorMessage}
+            helperText={errorMessage}
+            sx={{ mb: 2 }}
           />
           <TextField
             id="password"
-            label="Password"
-            placeholder="6 characters or more"
+            placeholder="Password"
             type="password"
             variant="outlined"
             fullWidth
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            sx={{ mb: 2 }}
           />
           <Button
             type="submit"
             variant="contained"
             fullWidth
             sx={{
-              bgcolor: "#007bff",
-              "&:hover": { bgcolor: "#0056b3" },
-              py: 1.2,
+              bgcolor: "#000",
+              color: "#fff",
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { bgcolor: "#333" },
             }}
           >
-            Create your free account
+            Next
+          </Button>
+          <Link
+            href="/forgot-password"
+            underline="hover"
+            sx={{ display: "block", mt: 2, color: "#000", fontWeight: "bold" }}
+          >
+            Forgot username?
+          </Link>
+          <Button
+            variant="outlined"
+            fullWidth
+            sx={{
+              mt: 2,
+              borderColor: "#000",
+              color: "#000",
+              fontWeight: "bold",
+              py: 1.5,
+              "&:hover": { bgcolor: "rgba(0, 0, 0, 0.1)" },
+            }}
+          >
+            Create an account
           </Button>
         </Box>
-        <Typography variant="body2" sx={{ mt: 2 }}>
-          Already have an account? Login on the {" "} 
-          <Link href="/" sx={{ color: "#007bff", textDecoration: "none" }}>
-            home page.
-          </Link>
-        </Typography>
       </Box>
     </Container>
   );
-};
+}
+
+export default SignupPage;

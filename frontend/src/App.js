@@ -8,6 +8,7 @@ import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
 import { AdminForm } from './components/AdminForm';
 import { SignupPage } from './pages/SignupPage';
+import { About } from './pages/About';
 import ProtectedRoute from './utils/ProtectedRoute';
 
 function AppContent() {
@@ -72,6 +73,10 @@ function AppContent() {
               <AdminForm />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/about"
+          element={<About />}
         />
       </Routes>
     </div>

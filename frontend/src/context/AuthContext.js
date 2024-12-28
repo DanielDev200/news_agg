@@ -10,12 +10,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  const getUserLocation = async (userId, currentUserLocation) => {
+  const getUserLocation = async (userId, currentUserLocation = null) => {
     try {
       if (currentUserLocation) {
         return;
       }
-  
+      
       const result = await fetchUserLocation(userId);
   
       if (result.location) {
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, authAttempted, userLocation, setIsAuthenticated }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, authAttempted, userLocation, getUserLocation, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

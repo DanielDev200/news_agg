@@ -5,24 +5,23 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 const WelcomeMessage = () => (
   <Grid2 item xs={12}>
     <Box sx={{ textAlign: 'left', margin: '20px 10px' }}>
-      <Typography variant="body1" gutterBottom sx={{ marginBottom: '16px' }}>
-        News can be overwhelming. It's hard to make sense of all the information available.
+      <Typography variant="p" component="p" sx={{textAlign: 'left', fontSize: '20px'}}>
+        (almost) All The News is your sole source for news...almost.
       </Typography>
-      <Typography variant="body1" gutterBottom sx={{ marginBottom: '16px' }}>
-        News Aggregator helps by organizing news into 4 categories:
+      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
+        AATN puts local news into a feed alongside national stories, so you get the full picture.
       </Typography>
-      <List sx={{ mt: 2, marginBottom: '16px' }}>
-        {['Local News', 'County News', 'State News', 'National News'].map((category, index) => (
-          <ListItem sx={{ padding: '4px 0' }} key={index}>
-            <ListItemIcon sx={{ minWidth: '20px' }}>
-              <FiberManualRecordIcon sx={{ fontSize: '16px' }} />
-            </ListItemIcon>
-            <ListItemText primary={category} />
-          </ListItem>
-        ))}
-      </List>
-      <Typography variant="body1" gutterBottom sx={{ marginTop: '20px' }}>
-        Enter the name of your city and the state to get started
+      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
+        Just try finding real, actual local news on another aggregator. If you do, please share it with me.
+      </Typography>
+      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
+        I couldn't find one so I built this instead.
+      </Typography>
+      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
+        If you want more information, check out the about page.
+      </Typography>
+      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
+        Otherwise, enter your city above (or request it if it's not there), and start getting almost all the news, today!
       </Typography>
     </Box>
   </Grid2>

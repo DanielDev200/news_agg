@@ -112,12 +112,10 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
 
   const renderContent = () => {
     if (!authAttempted) {
-      console.log('--- !authAttempted ---');
       return null;
     }
 
     if (!isAuthenticated && !articleFetchMade) {
-      console.log('--- !isAuthenticated && !articleFetchMade ---');
       return <WelcomeMessage />;
     }
 
@@ -126,12 +124,10 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     // }
 
     if (loading) {
-      console.log('--- loading ---');
       return <LoadingSpinner />;
     }
 
     if (articleFetchMade && articles.length > 0) {
-      console.log('--- articleFetchMade && articles.length > 0 ---');
       return (
         <ArticleList
           articles={articles}
@@ -142,8 +138,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
 
     if (articleFetchMade && articles.length === 0) {
-      console.log('--- articleFetchMade && articles.length === 0 ---');
-
       return (
         <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
           {'No articles found for your selected city and state.'}

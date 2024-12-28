@@ -12,21 +12,20 @@ export const handleLogin = async () => {
   }
 };
 
-export const handleEmailLogin = async (email, password, setIsAuthenticated) => {
+export const handleEmailLogin = async (email, password) => {
   if (!email || !password) {
     console.error('Email and password are required.');
     return { success: false, message: 'Email and password are required.' };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     console.error('Error logging in with email:', error.message);
-    return { success: false, message: error.message };
+    return { success: false, message: error.message};
   }
 
-  setIsAuthenticated(true);
-  return { success: true, message: 'Logged in successfully.' };
+  return { success: true, message: 'Logged in successfully.', userId: data.user?.id };
 };
 
 export const handleEmailSignup = async (email, password, setIsAuthenticated) => {

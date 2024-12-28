@@ -24,52 +24,44 @@ export function Topbar() {
     <AppBar position="static" color="transparent" elevation={0}>
       <Toolbar>
         <MenuButton />
+        <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
+          <Typography
+            variant="h6"
+            component="h1"
+            className="fade-in"
+            onClick={() => navigate('/')}
+            style={{ cursor: 'pointer' }}
+          >
+            (almost) All The News
+          </Typography>
+        </Box>
+
         {authChecked && (
           <>
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography
-                variant="h6"
-                align="center"
-                component="div"
-                className="fade-in"
-                onClick={() => navigate('/')}
-                style={{ cursor: 'pointer' }}
-              >
-                News Aggregator
-              </Typography>
-            </Box>
             {isAuthenticated ? (
               <Button
                 className="fade-in"
                 color="inherit"
-                onClick={async () => {
-                  const result = await handleLogout(setIsAuthenticated);
-                  if (result.success) {
-                    console.log(result.message);
-                  } else {
-                    console.error(result.message);
-                  }
-                }}
+                onClick={async () => await handleLogout(setIsAuthenticated)}
               >
                 Logout
               </Button>
             ) : (
-              <>
-                <Button
-                  className="fade-in"
-                  color="inherit"
-                  onClick={handleSignupAction}
-                >
-                  Sign Up
-                </Button>
-                <Button
-                  className="fade-in"
-                  color="inherit"
-                  onClick={(event) => setAuthPopoverAnchor(event.currentTarget)}
-                >
-                  Sign In
-                </Button>
-              </>
+              <Button
+                variant="outlined"
+                className="fade-in"
+                color="inherit"
+                onClick={handleSignupAction}
+                sx={{
+                  borderRadius: '10px',
+                  padding: '2px 10px',
+                  textTransform: 'none',
+                  borderColor: 'rgba(0, 0, 0, 0.23)',
+                  fontSize: "12px"
+                }}
+              >
+                Sign In
+              </Button>
             )}
           </>
         )}
