@@ -3,7 +3,6 @@ import { Container, Box, Typography, TextField, Button, Radio, RadioGroup, FormC
 import { handleEmailSignup } from "../utils/functions";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { useAuth } from '../context/AuthContext';
 import { saveUserLocation } from '../api/api';
 
 export function SignUpPage() {
@@ -12,10 +11,8 @@ export function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newsImportance, setNewsImportance] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const { setIsAuthenticated } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
-  const { setUserLocation } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -33,7 +30,6 @@ export function SignUpPage() {
     const { success, message, userId } = await handleEmailSignup(email, password);
 
     if (success) {
-      setIsAuthenticated(true);
       enqueueSnackbar("Account created successfully, sending you to the news...", {
         variant: "success",
         autoHideDuration: 3000,

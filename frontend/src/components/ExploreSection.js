@@ -17,6 +17,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [articleUrl, setArticleUrl] = useState('');
   const [servedContentMessageShown, setServedContentMessageShown] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && userLocation) {
@@ -25,6 +26,15 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       setLoading(false);
     }
   }, [articleFetchMade, isAuthenticated, userLocation]);
+
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldRender(true); // Allow rendering after 1 second
+    }, 1000);
+
+    return () => clearTimeout(timer); // Cleanup the timer
+  }, []); // Run once when the component mounts
 
   const handleArticleClick = async (article) => {
     if (isAuthenticated && user) {
@@ -120,8 +130,11 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       return <WelcomeMessage />;
     }
 
-    if (isAuthenticated && !articleFetchMade) {
-      console.log('userLocation:', userLocation);
+    if (isAuthenticated && !articleFetchMade) {  
+      if (!shouldRender) {
+        return null;
+      }
+  
       return <WelcomeMessageAuthed />;
     }
 

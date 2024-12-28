@@ -40,11 +40,7 @@ function AppContent() {
   }
 
   if (location.pathname === '/signup') {
-    return (
-      <AuthProvider>
-        <SignUpPage/>
-      </AuthProvider>
-    )
+    return <SignUpPage/>
   }
 
   return (
