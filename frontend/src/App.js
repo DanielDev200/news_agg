@@ -8,7 +8,7 @@ import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
 import { AdminForm } from './components/AdminForm';
 import { SignInPage } from './pages/SignInPage';
-import { SignUpPage } from './pages/SignUpPage';
+import SignUpPage from './pages/SignUpPage'; 
 import { About } from './pages/About';
 import ProtectedRoute from './utils/ProtectedRoute';
 

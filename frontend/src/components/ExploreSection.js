@@ -121,6 +121,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
 
     if (isAuthenticated && !articleFetchMade) {
+      console.log('userLocation:', userLocation);
       return <WelcomeMessageAuthed />;
     }
 
