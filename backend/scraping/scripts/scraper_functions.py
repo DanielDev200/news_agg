@@ -1,11 +1,22 @@
 from backend.db.db_config import get_db_connection
 from backend.scraping.logging_config import logger
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 import openai
 from openai import OpenAI
 
 client = OpenAI()
-import os
+
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+client.api_key = openai.api_key
+
+if not openai.api_key:
+    raise ValueError("OpenAI API key not found. Please set it in the environment variables.")
+
 
 def log_article_summary(source, new_articles, existing_articles_count):
     logger.info(f"Existing articles found on {source}: {existing_articles_count}")
