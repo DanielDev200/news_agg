@@ -2,6 +2,9 @@ from backend.db.db_config import get_db_connection
 from backend.scraping.logging_config import logger
 from datetime import datetime
 import openai
+from openai import OpenAI
+
+client = OpenAI()
 import os
 
 def log_article_summary(source, new_articles, existing_articles_count):
@@ -9,7 +12,7 @@ def log_article_summary(source, new_articles, existing_articles_count):
 
     if new_articles:
         logger.info(f"New articles found on {source}: {len(new_articles)}")
-        
+
         truncated_titles = ' | '.join([' '.join(title.split()[:4]) + "..." for title in new_articles])
         logger.info(f"New articles: {truncated_titles}")
     else:
@@ -103,32 +106,40 @@ def update_days_found(title, link):
         logger.error(f"Error updating days found for article: {title}, {link}. Error: {e}")
 
 
-def filter_articles_with_gpt(articles):
+def is_article_relevant(article):
     """
-    Filters articles using OpenAI GPT API based on custom criteria.
+    Checks if a single article is relevant based on OpenAI GPT API.
     """
+
+    # Check if the URL contains "/video/" and return False immediately if it does
+    if "/video/" in article.get('url', '').lower():
+        logger.info(f"Article skipped due to video URL: {article['url']}")
+        return False
+
+
     prompt = (
-        "You are an assistant tasked with sorting news articles. "
+        "You are an assistant tasked with determining if a news article matches specific criteria. "
         "Focus only on articles related to political, legislative, or financial topics. "
         "Exclude any articles about celebrities or entertainment. "
-        "Here is the list of articles:\n\n"
+        "Here is the article:\n\n"
+        f"Title: {article['title']}\n"
+        f"Description: {article['description']}\n\n"
+        "Does this article meet the criteria? Respond only with 'True' or 'False'."
     )
-    for i, article in enumerate(articles, 1):
-        prompt += f"{i}. Title: {article['title']}\n   Description: {article['description']}\n\n"
-
-    prompt += "Return the numbers of articles that meet the criteria and include their titles."
 
     try:
-        # Use the new OpenAI API syntax
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # Replace with "gpt-3.5-turbo" if needed
+        response = client.chat.completions.create(
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ]
+                {"role": "user", "content": prompt},
+            ],
         )
-        # Access the content of the response
-        filtered_response = response.choices[0].message['content']
-        return filtered_response
-    except openai.error.OpenAIError as e:
-        raise RuntimeError(f"Error using OpenAI API: {e}")
+        result = response.choices[0].message.content.strip().lower()
+        return result == "true"
+    except openai.OpenAIError as e:
+        logger.error(f"Error using OpenAI API: {e}")
+        return False
+
+
+        article['url']

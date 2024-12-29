@@ -180,12 +180,14 @@ const swappedArticleFunctions = {
       queryParams = [city, state, userId];
     } else if (category === 'national') {
       unservedQuery = `
-        SELECT * FROM articles
-        WHERE national_identifier = 'USA'
-        AND id NOT IN (
-          SELECT article_id FROM user_article_served WHERE user_id = ?
+        select * from articles
+        where national_identifier = 'USA'
+        and sourced between curdate() - interval 14 day and curdate()
+        and id not in (
+          select article_id from user_article_served where user_id = ?
         )
-        LIMIT 1
+        order by sourced desc
+        limit 1
       `;
       
       queryParams = [userId];
