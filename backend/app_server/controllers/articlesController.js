@@ -163,18 +163,19 @@ const swappedArticleFunctions = {
 
     return missingParams;
   },
-  getUnservedArticles: async (city, state, userId, category) => {
+  getUnservedArticle: async (city, state, userId, category) => {
     let unservedQuery;
     let queryParams = [];
   
     if (category === 'city') {
       unservedQuery = `
-        SELECT * FROM articles
-        WHERE city_identifier = ? AND state_identifier = ?
-        AND id NOT IN (
-          SELECT article_id FROM user_article_served WHERE user_id = ?
+        select * from articles
+        where city_identifier = ? and state_identifier = ?
+        and id not in (
+          select article_id from user_article_served where user_id = ?
         )
-        LIMIT 1
+        order by sourced desc
+        limit 1
       `;
         
       queryParams = [city, state, userId];
@@ -195,15 +196,15 @@ const swappedArticleFunctions = {
       throw new Error(`Unsupported category: ${category}`);
     }
   
-    const [unservedArticles] = await pool.execute(unservedQuery, queryParams);
-  
-    return unservedArticles;
+    const [[unservedArticle]] = await pool.execute(unservedQuery, queryParams);
+    
+    return unservedArticle;
   },
   logArticleServed: async (userId, articleId) => {
     const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
     await pool.execute(insertQuery, [userId, articleId]);
   },
-  getServedArticles: async (userId, category, city = null, state = null) => {
+  getServedArticle: async (userId, category, city = null, state = null) => {
     let servedQuery;
     let queryParams = [userId];
   
@@ -256,9 +257,9 @@ const swappedArticleFunctions = {
       throw new Error(`Unsupported category: ${category}`);
     }
   
-    const [servedArticles] = await pool.execute(servedQuery, queryParams);
+    const [[servedArticle]] = await pool.execute(servedQuery, queryParams);
   
-    return servedArticles;
+    return servedArticle;
   }
 }
 
@@ -273,24 +274,21 @@ const getSwappedArticle = async (req, res) => {
   }
 
   try {
-    const unservedArticles = await swappedArticleFunctions.getUnservedArticles(city, state, userId, category);
+    const unservedArticle = await swappedArticleFunctions.getUnservedArticle(city, state, userId, category);
     
-    if (unservedArticles.length > 0) {
-      unservedArticles[0].category = category;
-
-      await swappedArticleFunctions.logArticleServed(userId, unservedArticles[0].id);
-      res.status(200).json({ article: unservedArticles[0], message: null });
-      return
-    } 
+    if (unservedArticle) {
+      unservedArticle.category = category;
+      await swappedArticleFunctions.logArticleServed(userId, unservedArticle.id);
+      return res.status(200).json({ article: unservedArticle, message: null });
+    }
   
-    const servedArticles = await swappedArticleFunctions.getServedArticles(userId, category, city, state);
+    const servedArticle = await swappedArticleFunctions.getServedArticle(userId, category, city, state);
 
     if (servedArticles.length > 0) {
-      servedArticles[0].category = category;
+      servedArticle.category = category;
 
-      await swappedArticleFunctions.logArticleServed(userId, servedArticles[0].id);
-      res.status(200).json({ article: servedArticles[0], message: 'No unserved articles available. Showing previously served articles.' });
-      return
+      await swappedArticleFunctions.logArticleServed(userId, servedArticle.id);
+      return res.status(200).json({ article: servedArticle, message: 'No unserved articles available. Showing previously served articles.' });
     } 
 
     if (servedArticles.length === 0) {
