@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Container, Typography } from '@mui/material';
 import { createArticle } from '../api/api';
 
-export function AdminForm() {
+export const AdminForm = () => {
   const [formData, setFormData] = useState({
     source: '',
     scraped: false,
@@ -146,3 +146,5 @@ export function AdminForm() {
     </Container>
   );
 }
+
+export default AdminForm;

@@ -49,3 +49,10 @@ CREATE TABLE user_role (
     role VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE sources (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    source VARCHAR(255) NOT NULL UNIQUE,
+    loads_in_iframe BOOLEAN NOT NULL,
+    notes TEXT DEFAULT NULL
+);

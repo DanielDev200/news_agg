@@ -7,6 +7,7 @@ const articlesRoutes = require('./routes/articlesRoutes');
 const userLocationRoutes = require('./routes/userLocationRoutes');
 const userArticleClickRoutes = require('./routes/userArticleClickRoutes');
 const userRoleRoutes = require('./routes/userRoleRoutes');
+const sourcesRoutes = require('./routes/sourcesRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 80;
@@ -30,6 +31,7 @@ app.use('/user-role', userRoleRoutes);
 app.use('/articles', articlesRoutes);
 app.use('/user-location', userLocationRoutes);
 app.use('/user-article-click', userArticleClickRoutes);
+app.use('/sources', sourcesRoutes);
 
 // Start the server
 app.listen(PORT, () => {

@@ -1,8 +1,6 @@
 const pool = require('../db/config');
 const { format } = require('date-fns-tz');
 
-
-
 const getArticlesFunctions = {
   validateParams: (city, state) => {
     const missingParams = [];

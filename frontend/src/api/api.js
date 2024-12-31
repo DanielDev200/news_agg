@@ -134,4 +134,46 @@ export const createArticle = async (formData) => {
   }
 };
 
+export const fetchSources = async () => {
+  try {
+    const response = await axios.get('/sources');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching sources:', error);
+    throw error;
+  }
+};
 
+
+export const createSource = async (formData) => {  
+  try {
+      const response = await axios.post('/sources', {
+        source: formData.source,
+        loads_in_iframe: formData.loads_in_iframe,
+        notes: formData.notes || ''
+      });
+  
+      if (response.status !== 201) {
+        throw new Error('An error occurred while creating the source.');
+      }
+  
+      return response.data;
+  } catch (error) {
+      console.error('Error:', error);
+  }
+};
+
+export const updateSourceNotes = async (id, notes) => {
+  try {
+    const response = await axios.put(`/sources/${id}`, { notes });
+
+    if (response.status !== 200) {
+      throw new Error('An error occurred while updating the notes.');
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating source notes:', error);
+    throw error;
+  }
+};

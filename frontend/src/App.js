@@ -6,7 +6,7 @@ import { Topbar } from './components/Topbar';
 import { AuthProvider } from './context/AuthContext';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
-import { AdminForm } from './components/AdminForm';
+import { AdminUI } from './components/AdminUI';
 import { SignInPage } from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage'; 
 import { About } from './pages/About';
@@ -78,7 +78,7 @@ function AppContent() {
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminForm />
+              <AdminUI />
             </ProtectedRoute>
           }
         />
