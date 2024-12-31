@@ -4,6 +4,7 @@ import { fetchArticles, saveUserLocation } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import {HeroSectionInput} from './HeroSectionInput';
 import { emailRegexTest } from '../utils/functions';
+import { useNavigate } from 'react-router-dom';
 
 export function HeroSection({ setArticles, setArticleFetchMade }) {
   const [initialFetchMade, setInitialFetchMade] = useState(false);
@@ -15,6 +16,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const { user, isAuthenticated, userLocation } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated && userLocation && userLocation.city && userLocation.state && !initialFetchMade) {
@@ -83,6 +85,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
 
   const handleOptionClick = ({label, city, state}) => {
     if (label === "Get your city's local news") {
+      navigate("/addyourcity");
       return;
     }
 

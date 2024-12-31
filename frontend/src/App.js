@@ -10,6 +10,9 @@ import { AdminForm } from './components/AdminForm';
 import { SignInPage } from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage'; 
 import { About } from './pages/About';
+import { AddYourCity } from './pages/AddYourCity';
+import { Stats } from './pages/Stats';
+import { Account } from './pages/Account';
 import ProtectedRoute from './utils/ProtectedRoute';
 
 function AppContent() {
@@ -82,6 +85,18 @@ function AppContent() {
         <Route
           path="/about"
           element={<About />}
+        />
+        <Route
+          path="/addyourcity"
+          element={<AddYourCity />}
+        />
+        <Route
+          path="/stats"
+          element={<Stats />}
+        />
+        <Route
+          path="/account"
+          element={<Account />}
         />
       </Routes>
     </div>

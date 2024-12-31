@@ -6,30 +6,33 @@ export function About() {
     <Container>
       <Box my={4}>
         <Typography variant="h3" component="h1" gutterBottom>
-          About
+          Stats
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          News aggregators are broken. They give too much news and not enough at the same time.
+          For those who've - made it here, wow. You really care.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          They give too much because their infinite scroll goes on forever. Not enough because there's no local news.
+          I'm <a href="https://www.linkedin.com/in/dan-ser/">Daniel</a>. I'm building <b>(almost) All The News</b> because I want my own news aggregator and not one of my dev friends will build it for me. Some friends.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          Almost All The News is a low-key aggregator that has two goals:
+          I want my news aggregator to do two things:
         </Typography>
         <List>
           <ListItem>
-            <ListItemText primary="Elevate local news" />
+            <ListItemText primary="elevate local news" />
           </ListItem>
           <ListItem>
-            <ListItemText primary='Provide just enough other news from varied sources to be "enough" for the day' />
+            <ListItemText primary="serve the right type of news so I don't have to read much more that day" />
           </ListItem>
         </List>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          We all get news from lots of places. There is no delusion that this will be anyone's sole source.
+          Even when AATN is fully complete I will for sure still read other news sources. BUT...at least I will know I also consumed the important stuff.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          But if local news is easier to acsess, then more will be consumed. And, hopefully, that will help local newsrooms grow.
+          To get more on my approach to balanced news, see here -{`>`} <a href="/">AATN's approach to balance news</a>
+        </Typography>
+        <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
+          If you have any questions please feel free to connect on LinkedIn and send them my way!
         </Typography>
       </Box>
     </Container>
