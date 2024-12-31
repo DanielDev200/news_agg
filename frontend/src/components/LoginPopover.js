@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import {Popover, Box, TextField, Button, CircularProgress, Typography} from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { handleEmailLogin } from '../utils/functions';
-import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 
 const LoginPopover = ({ anchorEl, onClose }) => {
-  const { setIsAuthenticated } = useAuth();
+  const { setIsAuthenticated } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

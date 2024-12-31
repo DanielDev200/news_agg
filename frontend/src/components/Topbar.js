@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppBar, Toolbar, Typography, Box, Button, IconButton, Menu, MenuItem } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import { handleLogout } from '../utils/functions';
 import MenuButton from './MenuButton';
 import LoginPopover from './LoginPopover';
@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 export function Topbar() {
   const navigate = useNavigate();
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const { isAuthenticated, setIsAuthenticated } = useAppContext();
   const [authChecked, setAuthChecked] = useState(false);
   const [authPopoverAnchor, setAuthPopoverAnchor] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);

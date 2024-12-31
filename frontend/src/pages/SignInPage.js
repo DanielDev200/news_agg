@@ -3,13 +3,13 @@ import { Container, Box, Typography, TextField, Button, Link } from "@mui/materi
 import { handleEmailLogin } from "../utils/functions";
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from "notistack";
-import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 
 export function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const { setIsAuthenticated, getUserLocation } = useAuth();
+  const { setIsAuthenticated, getUserLocation } = useAppContext();
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 

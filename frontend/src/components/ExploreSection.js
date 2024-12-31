@@ -4,18 +4,19 @@ import LoadingSpinner from './LoadingSpinner';
 import ArticleList from './ArticleList';
 import WelcomeMessage from './WelcomeMessage';
 import WelcomeMessageAuthed from './WelcomeMessageAuthed';
-import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import { recordUserArticleClick, fetchSwappedArticle } from '../api/api';
 import PopupDialog from './PopupDialog';
 import IFrame from './IFrame';
 
 export function ExploreSection({ articles, setArticles, articleFetchMade }) {
-  const { user, isAuthenticated, authAttempted, userLocation } = useAuth();
+  const { user, isAuthenticated, authAttempted, userLocation, sources } = useAppContext();
   const [loading, setLoading] = useState(true);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupContent, setPopupContent] = useState({ title: '', message: '' });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [articleUrl, setArticleUrl] = useState('');
+  const [articlOpensInIframe, setOpensInIframe] = useState('');
   const [servedContentMessageShown, setServedContentMessageShown] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -30,17 +31,26 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShouldRender(true); // Allow rendering after 1 second
+      setShouldRender(true);
     }, 1000);
 
-    return () => clearTimeout(timer); // Cleanup the timer
-  }, []); // Run once when the component mounts
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleArticleClick = async (article) => {
+    let canLoadInIframe = true;
+
+    sources.forEach((source) => {
+      if (article.url.includes(source.source) && source.loads_in_iframe === 0) {
+        canLoadInIframe = false;
+      }
+    });
+
     if (isAuthenticated && user) {
       await recordUserArticleClick(user.id, article.id);
     }
 
+    setOpensInIframe(canLoadInIframe);
     setArticleUrl(article.url);
     setDrawerOpen(true);
   };
@@ -177,7 +187,10 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       <Drawer
         anchor="bottom"
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => {
+          setDrawerOpen(false);
+          setOpensInIframe(false);
+        }}
         sx={{
           zIndex: 1300,
           '& .MuiPaper-root': {
@@ -186,7 +199,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
           },
         }}
       >
-       <IFrame articleUrl={articleUrl} setDrawerOpen={setDrawerOpen}/>
+       <IFrame articleUrl={articleUrl} setDrawerOpen={setDrawerOpen} articlOpensInIframe={articlOpensInIframe}/>
       </Drawer>
     </Container>
   );

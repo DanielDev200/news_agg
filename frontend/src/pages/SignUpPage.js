@@ -40,11 +40,10 @@ export function SignUpPage() {
         },
         onClose: async () => {
             const storedLocation = localStorage.getItem("selectedCity");
-            console.log(storedLocation);
   
             if (storedLocation) {
                 const { city, state } = JSON.parse(storedLocation);
-                console.log(userId, city, state);
+
                 await saveUserLocation(userId, city, state);
                 localStorage.removeItem("selectedCity");
             } else {

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import { HeroSection } from './components/HeroSection';
 import { ExploreSection } from './components/ExploreSection';
 import { Topbar } from './components/Topbar';
-import { AuthProvider } from './context/AuthContext';
+import { AppProvider } from './context/AppContext';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
 import { AdminUI } from './components/AdminUI';
@@ -105,11 +105,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
+    <AppProvider>
       <Router>
         <AppContent />
       </Router>
-    </AuthProvider>
+    </AppProvider>
   );
 }
 

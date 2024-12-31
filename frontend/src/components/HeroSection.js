@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Dialog, DialogTitle, DialogContent, TextField, Button, DialogActions} from '@mui/material';
 import { fetchArticles, saveUserLocation } from '../api/api';
-import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import {HeroSectionInput} from './HeroSectionInput';
 import { emailRegexTest } from '../utils/functions';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const { user, isAuthenticated, userLocation } = useAuth();
+  const { user, isAuthenticated, userLocation } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {

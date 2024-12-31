@@ -11,7 +11,6 @@ const getSources = async (req, res) => {
 };
 
 const createSource = async (req, res) => {
-    console.log('-- here --');
     try {
       const { source, loads_in_iframe, notes } = req.body;
       const query = `INSERT INTO sources (source, loads_in_iframe, notes) VALUES (?, ?, ?)`;
