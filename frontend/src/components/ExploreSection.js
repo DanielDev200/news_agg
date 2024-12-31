@@ -16,7 +16,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const [popupContent, setPopupContent] = useState({ title: '', message: '' });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [articleUrl, setArticleUrl] = useState('');
-  const [articlOpensInIframe, setOpensInIframe] = useState('');
+  const [articleOpensInIframe, setOpensInIframe] = useState(false);
   const [servedContentMessageShown, setServedContentMessageShown] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -199,7 +199,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
           },
         }}
       >
-       <IFrame articleUrl={articleUrl} setDrawerOpen={setDrawerOpen} articlOpensInIframe={articlOpensInIframe}/>
+       <IFrame articleUrl={articleUrl} setDrawerOpen={setDrawerOpen} articleOpensInIframe={articleOpensInIframe}/>
       </Drawer>
     </Container>
   );
