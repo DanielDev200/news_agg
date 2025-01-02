@@ -10,7 +10,7 @@ import PopupDialog from './PopupDialog';
 import IFrame from './IFrame';
 
 export function ExploreSection({ articles, setArticles, articleFetchMade }) {
-  const { user, isAuthenticated, authAttempted, userLocation, sources } = useAppContext();
+  const { user, isAuthenticated, authAttempted, userLocation, sources, getUserLocation } = useAppContext();
   const [loading, setLoading] = useState(true);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupContent, setPopupContent] = useState({ title: '', message: '' });
@@ -84,7 +84,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     console.error('Error fetching unserved article:', fetchError);
     setPopupContent({
       title: 'Error',
-      message: 'An error occurred while fetching a new article. Please try again.',
+      message: 'An error occurred while fetching a new article. Please refresh the page and try again.',
     });
     setPopupOpen(true);
 
@@ -97,6 +97,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       return;
     }
 
+    const { city, state } = userLocation.city && userLocation.state ? userLocation: await getUserLocation(user.id);
+
     try {
       const {
         article: newArticle,
@@ -105,8 +107,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
         messageType,
         error: fetchError,
       } = await fetchSwappedArticle(
-        userLocation.city,
-        userLocation.state,
+        city,
+        state,
         user.id,
         articles[index].category
       );

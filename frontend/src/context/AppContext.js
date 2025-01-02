@@ -21,8 +21,12 @@ export const AppProvider = ({ children }) => {
   
       if (result.location) {
         setUserLocation(result.location);
+
+        return result.location;
       } else {
         setUserLocation({ city: '', state: '' });
+
+        return { city: '', state: '' };
       }
     } catch (error) {
       console.error('Error fetching user location:', error);
