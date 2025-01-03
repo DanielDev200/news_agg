@@ -110,7 +110,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
         city,
         state,
         user.id,
-        articles[index].category
+        articles[index].category,
+        articles[index].id
       );
 
       if (fetchError) {

@@ -59,18 +59,33 @@ const getArticlesFunctions = {
     if (!userId) {
       return articles;
     }
-
+  
     try {
-        const query = `select article_id from user_article_clicks where user_id = ? and created_at >= now() - interval 30 day`;
-        const [clickedArticles] = await pool.execute(query, [userId]);
-        const clickedArticleIds = clickedArticles.map((row) => row.article_id);
-
-        return articles.filter((article) => !clickedArticleIds.includes(article.id));
+      const clickedQuery = `
+        SELECT article_id 
+        FROM user_article_clicks 
+        WHERE user_id = ? AND created_at >= NOW() - INTERVAL 30 DAY
+      `;
+      const [clickedArticles] = await pool.execute(clickedQuery, [userId]);
+      const clickedArticleIds = clickedArticles.map((row) => row.article_id);
+  
+      const swappedQuery = `
+        SELECT article_id 
+        FROM user_article_swap 
+        WHERE user_id = ?
+      `;
+      const [swappedArticles] = await pool.execute(swappedQuery, [userId]);
+      const swappedArticleIds = swappedArticles.map((row) => row.article_id);
+  
+      const excludedArticleIds = new Set([...clickedArticleIds, ...swappedArticleIds]);
+  
+      return articles.filter((article) => !excludedArticleIds.has(article.id));
     } catch (error) {
-        console.error('Error filtering clicked articles:', error);
-        return articles;
+      console.error('Error filtering clicked and swapped articles:', error);
+      return articles;
     }
   },
+  
   applyFilters: async (articles, userId) => {
     let filteredArticles = articles;
 
@@ -202,6 +217,10 @@ const swappedArticleFunctions = {
     const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
     await pool.execute(insertQuery, [userId, articleId]);
   },
+  logArticleSwapped: async (userId, articleId) => {
+    const insertQuery = `INSERT INTO user_article_swap (user_id, article_id) VALUES (?, ?)`;
+    await pool.execute(insertQuery, [userId, articleId]);
+  },
   getServedArticle: async (userId, category, city = null, state = null) => {
     let servedQuery;
     let queryParams = [userId];
@@ -262,7 +281,7 @@ const swappedArticleFunctions = {
 }
 
 const getSwappedArticle = async (req, res) => {
-  const { city, state, user_id: userId, category } = req.query;
+  const { city, state, user_id: userId, category, articleId } = req.query;
   const missingParams = swappedArticleFunctions.validateSwappedArticleInput(city, state, userId);
 
   if (missingParams.length > 0) {
@@ -277,6 +296,7 @@ const getSwappedArticle = async (req, res) => {
     if (unservedArticle) {
       unservedArticle.category = category;
       await swappedArticleFunctions.logArticleServed(userId, unservedArticle.id);
+      await swappedArticleFunctions.logArticleSwapped(userId, articleId);
       return res.status(200).json({ article: unservedArticle, message: null });
     }
   
@@ -286,6 +306,7 @@ const getSwappedArticle = async (req, res) => {
       servedArticle.category = category;
 
       await swappedArticleFunctions.logArticleServed(userId, servedArticle.id);
+      await swappedArticleFunctions.logArticleSwapped(userId, articleId);
       return res.status(200).json({ article: servedArticle, message: 'No unserved articles available. Showing previously served articles.' });
     } 
 
