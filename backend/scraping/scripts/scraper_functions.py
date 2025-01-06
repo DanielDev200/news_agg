@@ -116,7 +116,6 @@ def update_days_found(title, link):
     except Exception as e:
         logger.error(f"Error updating days found for article: {title}, {link}. Error: {e}")
 
-
 def is_article_relevant(article):
     """
     Checks if a single article is relevant based on OpenAI GPT API.

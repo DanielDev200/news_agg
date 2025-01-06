@@ -96,7 +96,7 @@ def save_news_api_articles(articles):
 
 
 def scrape_articles(url, title_element, title_class):
-    logger.info(f"Starting URL: {url}")
+    logger.info(f"<< Starting URL: {url} >>")
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -111,6 +111,7 @@ def scrape_articles(url, title_element, title_class):
 
         for article in articles:
             a_tag = article.find('a')
+
             if not a_tag:
                 a_tag = article.find_parent('a')
 
@@ -167,5 +168,6 @@ logger.info(f"<<<<--- Starting articles fetch at {datetime.now().strftime('%Y-%m
 scrape_articles('https://longbeachize.com/', 'h3', 'entry-title')
 scrape_articles('https://lbpost.com/', 'h2', 'entry-title')
 scrape_articles('https://lbwatchdog.com/', 'h3', 'is-title')
+scrape_articles('https://presstelegram.com/', 'h3', 'entry-title')
 process_news_api_articles()
 logger.info(f"Fetch Complete")
