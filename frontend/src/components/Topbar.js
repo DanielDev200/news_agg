@@ -31,12 +31,32 @@ export function Topbar() {
   };
 
   return (
-    <AppBar position="static" color="transparent" elevation={0}>
-      <Toolbar>
-        {/* Left Hamburger Menu */}
+    <AppBar
+      position="fixed"
+      color="transparent"
+      elevation={0}
+      sx={{
+        top: 0,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        backgroundColor: 'white',
+        borderBottom: '1px solid #eee',
+        transform: 'translateZ(0)'
+      }}
+    >
+      <Toolbar
+        sx={{
+          maxWidth: { xs: '94%', sm: 560 },
+          margin: '0 auto',
+          width: '100%',
+          display: 'flex',
+          paddingLeft: { xs: 0, sm: 'inherit' },
+          paddingRight: { xs: 0, sm: 'inherit' },
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
         <MenuButton />
 
-        {/* Centered Title */}
         <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
           <Typography
             variant="h6"
@@ -49,7 +69,6 @@ export function Topbar() {
           </Typography>
         </Box>
 
-        {/* Right Side Buttons */}
         {authChecked && (
           <>
             {isAuthenticated ? (

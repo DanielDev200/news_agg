@@ -5,7 +5,7 @@ import ArticleCard from './ArticleCard';
 const ArticleList = ({ articles, onArticleClick, onArticleSwap }) => (
   <Grid2 container spacing={4} sx={{ mt: 2, justifyContent: 'center', alignItems: 'center' }}>
     {articles.map((article, index) => (
-      <Grid2 item key={article.id || index} xs={12} sm={6} md={3} lg={3} xl={3} className="fade-in">
+      <Grid2 item key={article.id || index} xs={12} className="fade-in">
         <ArticleCard
           article={article}
           onClick={() => onArticleClick(article)}

@@ -177,7 +177,14 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 1 }}>
+    <Container
+      maxWidth={false}
+      sx={{
+        maxWidth: 560,
+        margin: '0 auto',
+        mt: 1
+      }}
+    >
       <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         {renderContent()}
       </Box>
