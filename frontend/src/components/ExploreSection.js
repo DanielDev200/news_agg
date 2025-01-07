@@ -182,7 +182,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       sx={{
         maxWidth: 560,
         margin: '0 auto',
-        mt: 1
+        mt: 1,
+        paddingBottom: '24px'
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>

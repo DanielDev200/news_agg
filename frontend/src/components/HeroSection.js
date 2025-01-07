@@ -134,7 +134,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
         backgroundColor: 'grey',
         color: 'white',
         textAlign: 'center',
-        padding: '40px 20px',
+        padding: '80px 20px 40px 20px',
       }}
     >
       <Box
