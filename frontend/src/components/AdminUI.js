@@ -11,7 +11,7 @@ export const AdminUI = () => {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', marginTop: '56px' }}>
       <Tabs value={activeTab} onChange={handleTabChange} centered>
         <Tab label="Admin Form" />
         <Tab label="Source Management" />
