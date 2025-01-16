@@ -39,7 +39,7 @@ const getArticlesFunctions = {
     return articles.reduce(
       (categories, article) => {
         if (article.city_identifier && article.state_identifier) {
-          article.category = 'city';
+          article.category = 'local';
           categories.city.push(article);
         } else if (article.national_identifier) {
           article.category = 'national';
@@ -180,7 +180,7 @@ const swappedArticleFunctions = {
     let unservedQuery;
     let queryParams = [];
   
-    if (category === 'city') {
+    if (category === 'local') {
       unservedQuery = `
         select * from articles
         where city_identifier = ? and state_identifier = ?

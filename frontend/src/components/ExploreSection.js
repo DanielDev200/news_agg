@@ -181,8 +181,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       maxWidth={false}
       sx={{
         maxWidth: 560,
-        margin: '0 auto',
-        mt: 1,
+        margin: '0 auto 0 auto',
+        padding: '0px',
         paddingBottom: '24px'
       }}
     >
