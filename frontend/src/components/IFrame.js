@@ -27,20 +27,20 @@ export default function IFrame({ articleUrl, setDrawerOpen, articleOpensInIframe
         >
             <Box
                 sx={{
-                height: '50px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: 'white',
-                px: 2,
-                borderBottom: '1px solid lightgray',
-                }}
+                    height: '50px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'white',
+                    px: 2,
+                    borderBottom: '1px solid lightgray',
+                    }}
             >
                 <IconButton
                     variant="contained"
                     fontSize="12px"
                     aria-label="close"
-                    onClick={() => setDrawerOpen(false)}
+                    onClick={() => {setDrawerOpen(false)}}
                 >
                     <CloseIcon />
                 </IconButton>

@@ -3,10 +3,10 @@ import { Container, Typography, Box, List, ListItem, ListItemText } from "@mui/m
 
 export function About() {
   return (
-    <Container>
+    <Container sx={{marginTop: 8}}>
       <Box my={4}>
         <Typography variant="h3" component="h1" gutterBottom>
-          Stats
+          About
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
           For those who've - made it here, wow. You really care.

@@ -67,6 +67,27 @@ export const saveUserLocation = async (userId, city, state) => {
   }
 };
 
+export const fetchUserArticlesByDate = async (userId, date) => {
+  try {
+    const response = await axios.get('/user-article-click/by-user-and-date', {
+        params: {
+          userId,
+          date
+        }
+    });
+    
+    if (response.status === 200 && response.data) {
+      return { success: true, articles: response.data.articles };
+    } else {
+      return { success: false, error: 'No articles found for this date' };
+    }
+  } catch (err) {
+    console.error('Error fetching articles by date:', err);
+    return { success: false, error: 'An error occurred while fetching the articles' };
+  }
+};
+
+
 export const fetchUserLocation = async (userId) => {
   try {
     const response = await axios.get(`/user-location?user_id=${userId}`);

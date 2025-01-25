@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Dialog, DialogTitle, DialogContent, TextField, Button, DialogActions} from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { fetchArticles, saveUserLocation } from '../api/api';
+import { HeroSectionAuthedContent }  from './HeroSectionAuthedContent';
 import { useAppContext } from '../context/AppContext';
-import {HeroSectionInput} from './HeroSectionInput';
 import { emailRegexTest } from '../utils/functions';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const { user, isAuthenticated, userLocation } = useAppContext();
+  const { user, isAuthenticated, userLocation, authAttempted } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -126,65 +126,69 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
     handleModalClose();
   }
 
-  return (
-    <Box
-      sx={{
-        backgroundImage: 'url(https://images.unsplash.com/photo-1531177071018-4e8c8d2a8d1c)',
-        backgroundSize: 'cover',
-        backgroundColor: 'grey',
-        color: 'white',
-        textAlign: 'center',
-        padding: '80px 20px 40px 20px',
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: 560,
-          margin: '0 auto',
-          width: '100%'
-        }}
-      >
-        <Typography variant="p" component="p" sx={{textAlign: 'center', marginTop: 2,  textAlign: { xs: 'left', sm: 'center' }}}>
-          Find your city and start getting pretty much all of the news:
-        </Typography>
-        <HeroSectionInput
-          handleOptionClick={handleOptionClick}
-          cityName={cityName}
-          dropdownOpen={dropdownOpen}
-          inputDisabled={inputDisabled}
-          handleCityNameChange={handleCityNameChange}
-          handleCityDropdownClick={handleCityDropdownClick}
-          error={error}
-          handleClearLocation={handleClearLocation}
-        />
-        <Dialog open={modalOpen} onClose={handleModalClose}>
-          <DialogTitle>Get your city's news</DialogTitle>
-          <DialogContent>
-            <Typography variant="body1" paragraph>
-              Enter your city's name and we'll get this sorted out
-            </Typography>
-            <TextField
-              label="Your Email Address"
-              type="email"
-              variant="outlined"
-              fullWidth
-              value={email}
-              onChange={handleEmailChange}
-              error={!!emailError}
-              helperText={emailError}
-              sx={{ marginTop: '16px' }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleModalChange} color="secondary">
-              Cancel
-            </Button>
-            <Button onClick={handleEmailSubmit} color="primary" variant="contained">
-              Submit
-            </Button>
-          </DialogActions>
-        </Dialog>
+  if (!authAttempted) {
+    return '';
+  } else if (!isAuthenticated || isAuthenticated && userLocation == null) {
+    return (
+      <HeroSectionAuthedContent
+        handleOptionClick={handleOptionClick}
+        cityName={cityName}
+        dropdownOpen={dropdownOpen}
+        inputDisabled={inputDisabled}
+        handleCityNameChange={handleCityNameChange}
+        handleCityDropdownClick={handleCityDropdownClick}
+        error={error}
+        handleClearLocation={handleClearLocation}
+        handleEmailChange={handleEmailChange}
+        emailError={emailError}
+        handleModalChange={handleModalChange}
+        handleEmailSubmit={handleEmailSubmit}
+        modalOpen={modalOpen}
+        handleModalClose={handleModalClose}
+        email={email}
+      />
+    )
+  } else if (isAuthenticated && userLocation) {
+    return (
+        <Box
+          sx={{
+            backgroundColor: 'grey',
+            color: 'white',
+            textAlign: 'center',
+            marginTop: '58px'
+          }}
+        >
+          <Box
+            sx={{
+              maxWidth: 560,
+              margin: '0 auto',
+              width: '100%'
+            }}
+          >
+          <Typography variant="p" component="p" sx={{ textAlign: 'center', marginTop: 2, textAlign: { xs: 'left', sm: 'center' } }}>
+              Local articles are for 
+              <Button 
+                sx={{
+                  fontWeight: 'bold', 
+                  padding: 0, 
+                  minWidth: 'auto',
+                  textTransform: 'none',
+                  color: 'white',
+                  textDecoration: 'underline',
+                  fontSize: 'inherit',
+                  fontFamily: 'inherit',
+                  marginLeft: '4px',
+                }} 
+                onClick={() => console.log("City and State clicked")}
+              >
+                {userLocation.city}, {userLocation.state}
+              </Button>
+          </Typography>
+          </Box>
       </Box>
-    </Box>
-  );
+    )
+  } else {
+    console.log('--- else ---');
+    return '';
+  }
 }

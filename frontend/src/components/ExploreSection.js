@@ -1,13 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Typography, Drawer} from '@mui/material';
+import { Container, Box, Typography, Drawer, Tabs, Tab} from '@mui/material';
 import LoadingSpinner from './LoadingSpinner';
 import ArticleList from './ArticleList';
 import WelcomeMessage from './WelcomeMessage';
 import WelcomeMessageAuthed from './WelcomeMessageAuthed';
 import { useAppContext } from '../context/AppContext';
-import { recordUserArticleClick, fetchSwappedArticle } from '../api/api';
+import { recordUserArticleClick, fetchSwappedArticle, fetchUserArticlesByDate } from '../api/api';
 import PopupDialog from './PopupDialog';
 import IFrame from './IFrame';
+
+// get caught up, not sucked in
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 0 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const { user, isAuthenticated, authAttempted, userLocation, sources, getUserLocation } = useAppContext();
@@ -19,6 +37,12 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const [articleOpensInIframe, setOpensInIframe] = useState(false);
   const [servedContentMessageShown, setServedContentMessageShown] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const [clickedArticleId, setClickedArticleId] = useState(null);
+  const [timerStartingTime, setTimerStartingTime] = useState(null);
+  const [clickedArticleIds, setClickedArticleIds] = useState([]);
+  const [persistedClickedArticles, setPersistedClickedArticles] = useState({articles:[]});
+  const [tabValue, setTabValue] = useState(0);
+  const [progressWidth, setProgressWidth] = useState(0);
 
   useEffect(() => {
     if (isAuthenticated && userLocation) {
@@ -28,8 +52,18 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
   }, [articleFetchMade, isAuthenticated, userLocation]);
 
-
   useEffect(() => {
+    const fetchArticles = async () => {
+      const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
+      setPersistedClickedArticles(fetchedPersistedClickedArticles);
+      setTimeout(() => {
+        setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
+      }, 500)
+    };
+  
+    fetchArticles();
+
     const timer = setTimeout(() => {
       setShouldRender(true);
     }, 1000);
@@ -37,8 +71,13 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     return () => clearTimeout(timer);
   }, []);
 
+  const calculateProgressWidth = () => {
+    return persistedClickedArticles.articles.length === 0  ? 11 : (persistedClickedArticles.articles.length / 6)*100;
+  }
+
   const handleArticleClick = async (article) => {
     let canLoadInIframe = true;
+    setClickedArticleId(article.id);
 
     sources.forEach((source) => {
       if (article.url.includes(source.source) && source.loads_in_iframe === 0) {
@@ -46,13 +85,18 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       }
     });
 
-    if (isAuthenticated && user) {
-      await recordUserArticleClick(user.id, article.id);
-    }
-
+    setTimerStartingTime(Date.now());
     setOpensInIframe(canLoadInIframe);
     setArticleUrl(article.url);
     setDrawerOpen(true);
+
+    if (isAuthenticated && user) {
+      await recordUserArticleClick(user.id, article.id);
+      setClickedArticleIds([...clickedArticleIds, article.id]);
+      const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
+      setPersistedClickedArticles(fetchedPersistedClickedArticles);
+    }
   };
 
   const handleNotRegistered = () => {
@@ -134,6 +178,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
   };
 
+  const handleTabChange = (event, newValue) => setTabValue(newValue);
+
   const renderContent = () => {
     if (!authAttempted) {
       return null;
@@ -155,25 +201,60 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       return <LoadingSpinner />;
     }
 
+    if (tabValue > 0) {
+      return (
+        <TabPanel value={tabValue} index={tabValue}>
+          <Typography variant="h6" sx={{ color: 'grey',  }}>
+            More
+          </Typography>
+          <Typography variant="p" sx={{ color: 'grey', textAlign: 'left' }}>
+            {clickedArticleIds.length < 6 ? 'Not unlocked yet' : 'More content'}
+          </Typography>
+        </TabPanel>
+      )
+    }
+
     if (articleFetchMade && articles.length > 0) {
       return (
-        <ArticleList
-          articles={articles}
-          onArticleClick={handleArticleClick}
-          onArticleSwap={handleArticleSwap}
-        />
+        <TabPanel value={tabValue} index={0}>
+          <ArticleList
+            articles={articles}
+            clickedArticleIds={clickedArticleIds}
+            onArticleClick={handleArticleClick}
+            onArticleSwap={handleArticleSwap}
+            setArticles={setArticles}
+          />
+        </TabPanel>
       );
     }
 
+    
+
     if (articleFetchMade && articles.length === 0) {
       return (
-        <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
-          {'No articles found for your selected city and state.'}
-        </Typography>
+        <TabPanel value={tabValue} index={0}>
+          <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
+            {'No articles found for your selected city and state.'}
+          </Typography>
+        </TabPanel>
       );
     }
 
     return null;
+  };
+
+  const handleDrawerClose = () => {
+    const currentTime = Date.now();
+    const runTimeMilliseconds = currentTime - timerStartingTime;
+    const runTimeSeconds = runTimeMilliseconds / 1000;
+    setTimeout(() => {
+      setProgressWidth(calculateProgressWidth());
+    }, 500)
+
+    // console.log(`Article ID: ${clickedArticleId}, Timer ran for: ${runTimeSeconds.toFixed(2)} seconds`);
+    setDrawerOpen(false);
+    setOpensInIframe(false);
+    setTimerStartingTime(null);
   };
 
   return (
@@ -186,6 +267,40 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
         paddingBottom: '24px'
       }}
     >
+      <Box>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          aria-label="article tabs"
+          sx={{
+            marginLeft: '16px',
+            padding: '0px',
+            '& .MuiTab-root': { 
+              textTransform: 'none'
+            }
+          }}
+        >
+          <Tab
+            label="Daily Reading"
+            sx={{
+              position: 'relative',
+              overflow: 'hidden',
+              backgroundColor: '#fff',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: `${progressWidth}%`,
+                height: '100%',
+                backgroundColor: persistedClickedArticles.articles.length > 5 ? 'rgba(46, 125, 50, 0.2)' : 'rgba(25, 118, 210, 0.2)',
+                transition: 'width 0.3s ease'
+              }
+            }}
+          />
+          <Tab label="More" />
+        </Tabs>
+      </Box>
       <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         {renderContent()}
       </Box>
@@ -198,10 +313,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       <Drawer
         anchor="bottom"
         open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setOpensInIframe(false);
-        }}
+        onClose={handleDrawerClose}
         sx={{
           zIndex: 1300,
           '& .MuiPaper-root': {
@@ -210,7 +322,11 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
           },
         }}
       >
-       <IFrame articleUrl={articleUrl} setDrawerOpen={setDrawerOpen} articleOpensInIframe={articleOpensInIframe}/>
+       <IFrame
+        articleUrl={articleUrl}
+        setDrawerOpen={setDrawerOpen}
+        articleOpensInIframe={articleOpensInIframe}
+      />
       </Drawer>
     </Container>
   );

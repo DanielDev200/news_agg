@@ -16,11 +16,16 @@ import { Account } from './pages/Account';
 import ProtectedRoute from './utils/ProtectedRoute';
 
 function AppContent() {
+  const [isReadyToShow, setIsReadyToShow] = useState(false);
   const [articles, setArticles] = useState([]);
   const [articleFetchMade, setArticleFetchMade] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    setTimeout(() => {
+      setIsReadyToShow(true);
+    }, 500);
+
     const hash = window.location.hash;
 
     if (hash) {
@@ -55,50 +60,54 @@ function AppContent() {
           onClose={() => setErrorMessage('')}
         />
       )}
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <HeroSection
-                setArticles={setArticles}
-                articles={articles}
-                setArticleFetchMade={setArticleFetchMade}
-              />
-              <ExploreSection
-                articles={articles}
-                setArticles={setArticles}
-                articleFetchMade={articleFetchMade}
-              />
-            </>
-          }
-        />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminUI />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/about"
-          element={<About />}
-        />
-        <Route
-          path="/addyourcity"
-          element={<AddYourCity />}
-        />
-        <Route
-          path="/stats"
-          element={<Stats />}
-        />
-        <Route
-          path="/account"
-          element={<Account />}
-        />
-      </Routes>
+      {
+        isReadyToShow && (
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <HeroSection
+                    setArticles={setArticles}
+                    articles={articles}
+                    setArticleFetchMade={setArticleFetchMade}
+                  />
+                  <ExploreSection
+                    articles={articles}
+                    setArticles={setArticles}
+                    articleFetchMade={articleFetchMade}
+                  />
+                </>
+              }
+            />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminUI />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/about"
+              element={<About />}
+            />
+            <Route
+              path="/addyourcity"
+              element={<AddYourCity />}
+            />
+            <Route
+              path="/stats"
+              element={<Stats />}
+            />
+            <Route
+              path="/account"
+              element={<Account />}
+            />
+          </Routes>
+        )
+      }
     </div>
   );
 }
