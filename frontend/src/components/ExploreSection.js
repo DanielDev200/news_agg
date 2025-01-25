@@ -55,11 +55,16 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   useEffect(() => {
     const fetchArticles = async () => {
       const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-      const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
-      setPersistedClickedArticles(fetchedPersistedClickedArticles);
-      setTimeout(() => {
-        setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
-      }, 500)
+      if (user && user.id) {
+        const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
+        setPersistedClickedArticles(fetchedPersistedClickedArticles);
+        setTimeout(() => {
+          setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
+        }, 500)
+      } else {
+        setProgressWidth(11);
+      }
+      
     };
   
     fetchArticles();
@@ -70,6 +75,14 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    // Force a re-render if mobile browsers do not pick up the change
+    const forceUpdate = setTimeout(() => {
+      setProgressWidth((prevWidth) => prevWidth + 0.001);
+    }, 100);
+    return () => clearTimeout(forceUpdate);
+  }, [progressWidth]);
 
   const calculateProgressWidth = () => {
     return persistedClickedArticles.articles.length === 0  ? 11 : (persistedClickedArticles.articles.length / 6)*100;
@@ -228,8 +241,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       );
     }
 
-    
-
     if (articleFetchMade && articles.length === 0) {
       return (
         <TabPanel value={tabValue} index={0}>
@@ -291,9 +302,9 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                width: `${progressWidth}%`,
+                width: `${progressWidth}% !important`,
                 height: '100%',
-                backgroundColor: persistedClickedArticles.articles.length > 5 ? 'rgba(46, 125, 50, 0.2)' : 'rgba(25, 118, 210, 0.2)',
+                backgroundColor: persistedClickedArticles.articles.length > 5 ? 'rgba(46, 125, 50, 0.2) !important' : 'rgba(25, 118, 210, 0.2) !important',
                 transition: 'width 0.3s ease'
               }
             }}
