@@ -76,18 +76,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    // Force a re-render if mobile browsers do not pick up the change
-    const forceUpdate = setTimeout(() => {
-      setProgressWidth((prevWidth) => prevWidth + 0.001);
-    }, 100);
-    return () => clearTimeout(forceUpdate);
-  }, [progressWidth]);
-
-  const calculateProgressWidth = () => {
-    return persistedClickedArticles.articles.length === 0  ? 11 : (persistedClickedArticles.articles.length / 6)*100;
-  }
-
   const handleArticleClick = async (article) => {
     let canLoadInIframe = true;
     setClickedArticleId(article.id);
@@ -254,13 +242,23 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     return null;
   };
 
-  const handleDrawerClose = () => {
+  const handleDrawerClose = async () => {
     const currentTime = Date.now();
     const runTimeMilliseconds = currentTime - timerStartingTime;
     const runTimeSeconds = runTimeMilliseconds / 1000;
-    setTimeout(() => {
-      setProgressWidth(calculateProgressWidth());
-    }, 500)
+    const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+    if (user && user.id) {
+      const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
+      setPersistedClickedArticles(fetchedPersistedClickedArticles);
+      setTimeout(() => {
+        setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
+      }, 500)
+    } else {
+      setTimeout(() => {
+        setProgressWidth(clickedArticleIds.length === 0  ? 11 : (clickedArticleIds.length / 6)*100);
+      }, 500)
+    }
 
     // console.log(`Article ID: ${clickedArticleId}, Timer ran for: ${runTimeSeconds.toFixed(2)} seconds`);
     setDrawerOpen(false);
