@@ -22,7 +22,7 @@ const ArticleList = ({ articles, setArticles, clickedArticleIds, onArticleClick,
             article={article}
             clickedArticleIds={clickedArticleIds}
             onArticleClick={() => onArticleClick(article)}
-            onArticleSwap={() => onArticleSwap(index)}
+            onArticleSwap={() => onArticleSwap(article.id)}
             onRemoveArticle={removeArticle}
           />
         </Grid2>

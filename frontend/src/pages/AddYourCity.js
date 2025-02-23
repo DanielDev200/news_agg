@@ -1,9 +1,9 @@
 import React from "react";
-import { Container, Typography, Box, List, ListItem, ListItemText } from "@mui/material";
+import { Container, Typography, Box } from "@mui/material";
 
 export function AddYourCity() {
   return (
-    <Container>
+    <Container sx={{marginTop: 8}}>
       <Box my={4}>
         <Typography variant="h4" component="h1" gutterBottom>
           Add Your City
@@ -18,7 +18,7 @@ export function AddYourCity() {
           <b>When it's ready</b>, you will be able to request your city and then I will add news sources from or around that city.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          Then you you can get the right balance of news, too.
+          Then you can get the right balance of news, too.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
           If you're interested, create an account and I'll send an email when the functionality is ready.

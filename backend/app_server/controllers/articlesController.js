@@ -85,7 +85,6 @@ const getArticlesFunctions = {
       return articles;
     }
   },
-  
   applyFilters: async (articles, userId) => {
     let filteredArticles = articles;
 
@@ -93,36 +92,44 @@ const getArticlesFunctions = {
       filteredArticles = await getArticlesFunctions.filterClickedArticles(filteredArticles, userId);
     }
 
-    const topThreeArticles = getArticlesFunctions.getTopThreeArticles(filteredArticles);
+    const topFiveArticles = getArticlesFunctions.getTopFiveArticles(filteredArticles);
 
-    return topThreeArticles;
+    return topFiveArticles;
   },
-  getTopThreeArticles: (articles) => {
-    if (articles.length < 3) {
-      return articles.slice(0, 3);
+  getTopFiveArticles: (articles) => {
+  
+    if (articles.length < 5) {
+      return articles;
+    }
+  
+    const sourceMap = new Map();
+    for (const article of articles) {
+      if (!sourceMap.has(article.source)) {
+        sourceMap.set(article.source, []);
+      }
+      sourceMap.get(article.source).push(article);
+    }
+  
+    const uniqueSources = Array.from(sourceMap.keys());
+    const totalUniqueSources = uniqueSources.length;
+  
+    if (totalUniqueSources >= 5) {
+      return uniqueSources.slice(0, 5).map(source => sourceMap.get(source)[0]);
     }
   
     const result = [];
-    const sourcesSet = new Set();
+    let remainingSlots = 5;
+    let index = 0;
   
-    for (const article of articles) {
-      if (result.length >= 3) {
-        break;
+    while (remainingSlots > 0) {
+      const source = uniqueSources[index % totalUniqueSources];
+      if (sourceMap.get(source).length > 0) {
+        result.push(sourceMap.get(source).shift());
+        remainingSlots--;
       }
-  
-      if (!sourcesSet.has(article.source)) {
-        result.push(article);
-        sourcesSet.add(article.source);
-      }
+      index++;
     }
-  
-    if (result.length < 3) {
-      const remainingArticles = articles.filter(
-        article => !sourcesSet.has(article.source)
-      );
-      result.push(...remainingArticles.slice(0, 3 - result.length));
-    }
-  
+
     return result;
   }
 }
@@ -176,19 +183,21 @@ const swappedArticleFunctions = {
 
     return missingParams;
   },
-  getUnservedArticle: async (city, state, userId, category) => {
+  getUnservedArticle: async (city, state, userId, category, sources) => {
     let unservedQuery;
     let queryParams = [];
+
+    console.log(sources);
   
     if (category === 'local') {
       unservedQuery = `
         select * from articles
         where city_identifier = ? and state_identifier = ?
+        and sourced between curdate() - interval 14 day and curdate()
         and id not in (
           select article_id from user_article_served where user_id = ?
         )
         order by sourced desc
-        limit 1
       `;
         
       queryParams = [city, state, userId];
@@ -201,7 +210,6 @@ const swappedArticleFunctions = {
           select article_id from user_article_served where user_id = ?
         )
         order by sourced desc
-        limit 1
       `;
       
       queryParams = [userId];
@@ -209,9 +217,44 @@ const swappedArticleFunctions = {
       throw new Error(`Unsupported category: ${category}`);
     }
   
-    const [[unservedArticle]] = await pool.execute(unservedQuery, queryParams);
-    
-    return unservedArticle;
+    try {
+      const [unservedArticles] = await pool.execute(unservedQuery, queryParams);
+  
+      if (unservedArticles.length === 0) {
+        return null;
+      }
+  
+      const sourceCount = sources.reduce((count, source) => {
+        count[source] = (count[source] || 0) + 1;
+        return count;
+      }, {});
+  
+      let selectedArticle = null;
+      let leastUsedSource = null;
+      let minSourceCount = Infinity;
+  
+      for (const article of unservedArticles) {
+        const source = article.source;
+        const currentCount = sourceCount[source] || 0;
+  
+        if (currentCount < minSourceCount) {
+          minSourceCount = currentCount;
+          leastUsedSource = source;
+          selectedArticle = article;
+        }
+      }
+  
+      if (selectedArticle) {
+        // console.log(`Selected article from source '${selectedArticle.source}' to balance representation.`);
+      } else {
+        selectedArticle = unservedArticles[0];
+      }
+  
+      return selectedArticle;
+    } catch (error) {
+      console.error('Database error:', error);
+      throw new Error('Error fetching unserved articles');
+    }
   },
   logArticleServed: async (userId, articleId) => {
     const insertQuery = `INSERT INTO user_article_served (user_id, article_id) VALUES (?, ?)`;
@@ -281,9 +324,9 @@ const swappedArticleFunctions = {
 }
 
 const getSwappedArticle = async (req, res) => {
-  const { city, state, user_id: userId, category, articleId } = req.query;
-  const missingParams = swappedArticleFunctions.validateSwappedArticleInput(city, state, userId);
+  const { city, state, user_id: userId, category, articleId, sources } = req.query;
 
+  const missingParams = swappedArticleFunctions.validateSwappedArticleInput(city, state, userId);
   if (missingParams.length > 0) {
     return res.status(400).json({
       error: `Missing parameter(s): ${missingParams.join(', ')}. Please provide all required parameters.`,
@@ -291,7 +334,7 @@ const getSwappedArticle = async (req, res) => {
   }
 
   try {
-    const unservedArticle = await swappedArticleFunctions.getUnservedArticle(city, state, userId, category);
+    const unservedArticle = await swappedArticleFunctions.getUnservedArticle(city, state, userId, category, sources);
     
     if (unservedArticle) {
       unservedArticle.category = category;
@@ -300,21 +343,18 @@ const getSwappedArticle = async (req, res) => {
       return res.status(200).json({ article: unservedArticle, message: null });
     }
   
-    const servedArticle = await swappedArticleFunctions.getServedArticle(userId, category, city, state);
+    const servedArticle = await swappedArticleFunctions.getServedArticle(userId, category, city, state, sources);
 
-    if (servedArticles.length > 0) {
+    if (servedArticle) {
       servedArticle.category = category;
-
       await swappedArticleFunctions.logArticleServed(userId, servedArticle.id);
       await swappedArticleFunctions.logArticleSwapped(userId, articleId);
       return res.status(200).json({ article: servedArticle, message: 'No unserved articles available. Showing previously served articles.' });
     } 
 
-    if (servedArticles.length === 0) {
-      return res.status(200).json({
-        message: 'No articles available for the specified parameters.',
-      });
-    }
+    return res.status(200).json({
+      message: 'No articles available for the specified parameters.',
+    });
   } catch (error) {
     console.error('Error fetching article:', error);
     res.status(500).json({
@@ -322,6 +362,7 @@ const getSwappedArticle = async (req, res) => {
     });
   }
 };
+
 
 // TO DO: this only creates national articles right now, not yet sure how to handle full city/regional/national logic
 const createArticle = async (req, res) => {

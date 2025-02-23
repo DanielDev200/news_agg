@@ -21,7 +21,7 @@ export const fetchArticles = async (city, state, user_id) => {
   }
 };
 
-export const fetchSwappedArticle = async (city, state, user_id, category, articleId) => {
+export const fetchSwappedArticle = async (city, state, user_id, category, articleId, sources) => {
   try {
     const response = await axios.get('/articles/swap', {
       params: {
@@ -29,7 +29,8 @@ export const fetchSwappedArticle = async (city, state, user_id, category, articl
         state,
         user_id,
         category,
-        articleId
+        articleId,
+        sources
       },
     });
 

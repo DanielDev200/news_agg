@@ -136,12 +136,13 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     return;
   };
 
-  const handleArticleSwap = async (index) => {
+  const handleArticleSwap = async (articleId) => {
     if (!isAuthenticated) {
       handleNotRegistered();
       return;
     }
 
+    const index = articles.findIndex(article => article.id === articleId);
     const { city, state } = userLocation.city && userLocation.state ? userLocation: await getUserLocation(user.id);
 
     try {
@@ -156,7 +157,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
         state,
         user.id,
         articles[index].category,
-        articles[index].id
+        articles[index].id,
+        articles.filter(article => article.category === articles[index].category).map(article => article.source)
       );
 
       if (fetchError) {
@@ -205,12 +207,13 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     if (tabValue > 0) {
       return (
         <TabPanel value={tabValue} index={tabValue}>
-          <Typography variant="h6" sx={{ color: 'grey',  }}>
-            More
-          </Typography>
-          <Typography variant="p" sx={{ color: 'grey', textAlign: 'left' }}>
-            {clickedArticleIds.length < 6 ? 'Not unlocked yet' : 'More content'}
-          </Typography>
+          <ArticleList
+            articles={articles.filter(article => article.category === 'national')}
+            clickedArticleIds={clickedArticleIds}
+            onArticleClick={handleArticleClick}
+            onArticleSwap={handleArticleSwap}
+            setArticles={setArticles}
+          />
         </TabPanel>
       )
     }
@@ -219,7 +222,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       return (
         <TabPanel value={tabValue} index={0}>
           <ArticleList
-            articles={articles}
+            articles={articles.filter(article => article.category === 'local')}
             clickedArticleIds={clickedArticleIds}
             onArticleClick={handleArticleClick}
             onArticleSwap={handleArticleSwap}
@@ -250,7 +253,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
 
     if (user && user.id) {
       const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
-      setPersistedClickedArticles(fetchedPersistedClickedArticles);
       setTimeout(() => {
         setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
       }, 500)
@@ -290,24 +292,14 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
           }}
         >
           <Tab
-            label="Daily Reading"
+            label="Local"
             sx={{
               position: 'relative',
               overflow: 'hidden',
-              backgroundColor: '#fff',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: `${progressWidth}% !important`,
-                height: '100%',
-                backgroundColor: persistedClickedArticles.articles.length > 5 ? 'rgba(46, 125, 50, 0.2) !important' : 'rgba(25, 118, 210, 0.2) !important',
-                transition: 'width 0.3s ease'
-              }
+              backgroundColor: '#fff'
             }}
           />
-          <Tab label="More" />
+          <Tab label="National" />
         </Tabs>
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
