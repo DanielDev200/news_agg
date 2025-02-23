@@ -9,10 +9,7 @@ export function Account() {
           Account
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          Eventually you'll be able to change your passwrod and stuff like that from here.
-        </Typography>
-        <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          But I haven't built any of that boring stuff yet.
+          Email and password management is still in development.
         </Typography>
       </Box>
     </Container>

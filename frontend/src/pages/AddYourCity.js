@@ -9,19 +9,13 @@ export function AddYourCity() {
           Add Your City
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          You caught me. This functionality <b>isn't ready yet</b>.
+          This functionality isn't ready yet.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-            For now this app really only works for Long Beach, CA.
+          When it is, users will be able to request their cities be included.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          <b>When it's ready</b>, you will be able to request your city and then I will add news sources from or around that city.
-        </Typography>
-        <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          Then you can get the right balance of news, too.
-        </Typography>
-        <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          If you're interested, create an account and I'll send an email when the functionality is ready.
+          <b>Interested?</b> Create an account and an email will be sent when the functionality is ready.
         </Typography>
       </Box>
     </Container>

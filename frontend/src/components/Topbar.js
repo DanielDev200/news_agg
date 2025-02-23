@@ -89,9 +89,9 @@ export function Topbar() {
                   open={Boolean(menuAnchorEl)}
                   onClose={handleMenuClose}
                 >
-                  <MenuItem onClick={() => { handleMenuClose(); navigate('/stats'); }}>
+                  {/* <MenuItem onClick={() => { handleMenuClose(); navigate('/stats'); }}>
                     Stats
-                  </MenuItem>
+                  </MenuItem> */}
                   <MenuItem onClick={() => { handleMenuClose(); navigate('/account'); }}>
                     Account
                   </MenuItem>

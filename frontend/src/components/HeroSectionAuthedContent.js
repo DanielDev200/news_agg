@@ -37,7 +37,7 @@ export function HeroSectionAuthedContent({
                 }}
                 >
                     <Typography variant="p" component="p" sx={{textAlign: 'center', marginTop: 2,  textAlign: { xs: 'left', sm: 'center' }}}>
-                        Find your city and start getting pretty much all of the news:
+                        Find your city and start getting almost all of the news:
                     </Typography>
                     <HeroSectionInput
                         handleOptionClick={handleOptionClick}

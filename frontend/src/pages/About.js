@@ -9,30 +9,19 @@ export function About() {
           About
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          For those who've - made it here, wow. You really care.
+          (almost) All The News serves up almost all of the news, daily.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          I'm <a href="https://www.linkedin.com/in/dan-ser/">Daniel</a>. I'm building <b>(almost) All The News</b> because I want my own news aggregator and not one of my dev friends will build it for me. Some friends.
+          National and local sources side-by-side balances community information with important headlines.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          I want my news aggregator to do two things:
-        </Typography>
-        <List>
-          <ListItem>
-            <ListItemText primary="elevate local news" />
-          </ListItem>
-          <ListItem>
-            <ListItemText primary="serve the right type of news so I don't have to read much more that day" />
-          </ListItem>
-        </List>
-        <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          Even when AATN is fully complete I will for sure still read other news sources. BUT...at least I will know I also consumed the important stuff.
+          A simple five story that allows swapping in-place replaces an endless scroll feed that can be addicting and anxiety inducing.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          To get more on my approach to balanced news, see here -{`>`} <a href="/">AATN's approach to balance news</a>
+            AATN currently only works for Long Beach, CA.
         </Typography>
         <Typography variant="body1" component="p" sx={{ marginBottom: 2 }}>
-          If you have any questions please feel free to connect on LinkedIn and send them my way!
+          Being built by <a href="https://www.linkedin.com/in/dan-ser/">Daniel Serrano</a>.
         </Typography>
       </Box>
     </Container>
