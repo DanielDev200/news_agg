@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import { HeroSection } from './components/HeroSection';
 import { ExploreSection } from './components/ExploreSection';
 import { Topbar } from './components/Topbar';
+import { DesktopWarningModal } from './components/DesktopWarningModal';
 import { AppProvider } from './context/AppContext';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorNotification } from './components/ErrorNotification';
@@ -54,6 +55,7 @@ function AppContent() {
   return (
     <div>
       <Topbar />
+      <DesktopWarningModal />
       {errorMessage && (
         <ErrorNotification
           message={errorMessage}
