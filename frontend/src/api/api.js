@@ -14,6 +14,7 @@ export const fetchArticles = async (city, state, user_id) => {
     if (response.status === 200) {
       return { articles: response.data.articles };
     }
+
     return { error: 'No articles found for the specified city and state.' };
   } catch (err) {
     console.error('Error fetching articles:', err);
@@ -21,7 +22,7 @@ export const fetchArticles = async (city, state, user_id) => {
   }
 };
 
-export const fetchSwappedArticle = async (city, state, user_id, category, articleId, sources) => {
+export const fetchSwappedArticle = async (city, state, user_id, category, articleId, sources, index) => {
   try {
     const response = await axios.get('/articles/swap', {
       params: {
@@ -30,7 +31,8 @@ export const fetchSwappedArticle = async (city, state, user_id, category, articl
         user_id,
         category,
         articleId,
-        sources
+        sources,
+        index
       },
     });
 

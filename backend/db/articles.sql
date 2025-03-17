@@ -56,3 +56,13 @@ CREATE TABLE sources (
     loads_in_iframe BOOLEAN NOT NULL,
     notes TEXT DEFAULT NULL
 );
+
+CREATE TABLE user_article_feed (
+    user_id VARCHAR(255),
+    article_id INT,
+    placement INT UNSIGNED NOT NULL,
+    tab VARCHAR(12) NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (article_id) REFERENCES articles(id),
+    UNIQUE INDEX idx_article_placement (article_id, placement)
+);

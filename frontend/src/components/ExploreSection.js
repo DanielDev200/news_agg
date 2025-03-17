@@ -55,6 +55,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   useEffect(() => {
     const fetchArticles = async () => {
       const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
       if (user && user.id) {
         const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
         setPersistedClickedArticles(fetchedPersistedClickedArticles);
@@ -64,7 +65,7 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       } else {
         setProgressWidth(11);
       }
-      
+
     };
   
     fetchArticles();
@@ -158,7 +159,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
         user.id,
         articles[index].category,
         articles[index].id,
-        articles.filter(article => article.category === articles[index].category).map(article => article.source)
+        articles.filter(article => article.category === articles[index].category).map(article => article.source),
+        index+1
       );
 
       if (fetchError) {

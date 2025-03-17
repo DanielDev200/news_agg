@@ -1,6 +1,16 @@
 const pool = require('../db/config');
 const { format } = require('date-fns-tz');
 
+const formatDateForMySQL = (date) => {
+  const z = n => n < 10 ? '0' + n : n;
+  return date.getFullYear() + '-' +
+    z(date.getMonth() + 1) + '-' +
+    z(date.getDate()) + ' ' +
+    z(date.getHours()) + ':' +
+    z(date.getMinutes()) + ':' +
+    z(date.getSeconds());
+};
+
 const getArticlesFunctions = {
   validateParams: (city, state) => {
     const missingParams = [];
@@ -40,20 +50,52 @@ const getArticlesFunctions = {
       (categories, article) => {
         if (article.city_identifier && article.state_identifier) {
           article.category = 'local';
-          categories.city.push(article);
+          const index = categories.city.findIndex(a => a.placement > article.placement);
+          if (index === -1) {
+            categories.city.push(article);
+          } else {
+            categories.city.splice(index, 0, article);
+          }
         } else if (article.national_identifier) {
           article.category = 'national';
-          categories.national.push(article);
+          const index = categories.national.findIndex(a => a.placement > article.placement);
+          if (index === -1) {
+            categories.national.push(article);
+          } else {
+            categories.national.splice(index, 0, article);
+          }
         }
         return categories;
       },
       { city: [], county: [], state: [], national: [] }
     );
-  },
+  },  
   fetchArticles: async () => {
     const query = `select * from articles where sourced between curdate() - interval 14 day and curdate() order by sourced desc`;
     const [articles] = await pool.execute(query);
     return articles;
+  },
+  batchInsertUserArticleFeed: async (entries) => {
+    const placeholders = entries.map(() => '(?, ?, ?, ?, ?)').join(', ');
+    const values = [];
+
+    entries.forEach(entry => {
+      values.push(entry.user_id);
+      values.push(entry.article_id);
+      values.push(entry.placement);
+      values.push(entry.tab);
+      values.push(formatDateForMySQL(new Date(entry.created_at)));
+    });
+
+    const sql = `INSERT IGNORE INTO user_article_feed (user_id, article_id, placement, tab, created_at) VALUES ${placeholders}`;
+
+    try {
+      const [results] = await pool.execute(sql, values);
+      return results;
+    } catch (error) {
+      console.error('Error inserting articles into user_article_feed:', error);
+      throw error;
+    }
   },
   filterClickedArticles: async (articles, userId) => {
     if (!userId) {
@@ -131,6 +173,41 @@ const getArticlesFunctions = {
     }
 
     return result;
+  },
+  fetchArticlesFromFeed: async (userId) => {
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+
+    const query = `
+      SELECT a.*
+      , f.placement
+      , f.tab
+      , f.created_at
+      , CASE WHEN c.id IS NOT NULL THEN TRUE ELSE FALSE END AS clicked
+      FROM user_article_feed f
+      JOIN articles a ON f.article_id = a.id
+      LEFT JOIN user_article_clicks c
+        ON c.article_id = a.id
+        AND c.user_id = ?
+        AND DATE(c.created_at) = DATE(f.created_at)
+      WHERE f.user_id = ?
+      AND DATE(f.created_at) = ?
+      ORDER BY f.tab, f.placement, f.created_at DESC
+    `;
+
+    const [articles] = await pool.execute(query, [userId, userId, todayStr]);
+
+    const uniqueArticlesObject = articles.reduce((acc, article) => {
+      const key = `${article.tab}-${article.placement}`;
+      if (!acc[key] || new Date(article.created_at) > new Date(acc[key].created_at)) {
+        acc[key] = article;
+      }
+      return acc;
+    }, {});
+
+    const uniqueArticlesArray = Object.values(uniqueArticlesObject);
+    
+    return uniqueArticlesArray;
   }
 }
 
@@ -144,6 +221,15 @@ const getArticles = async (req, res) => {
   }
 
   try {
+    if (userId) {
+      const articlesFromFeed = await getArticlesFunctions.fetchArticlesFromFeed(userId);
+      const categorizedArticlesFromFeed = getArticlesFunctions.categorizeArticles(articlesFromFeed);
+  
+      if (articlesFromFeed.length > 0) {
+        return res.json({articles: categorizedArticlesFromFeed});
+      }
+    }
+
     const articles = await getArticlesFunctions.fetchArticles();
 
     if (articles.length === 0) {
@@ -163,6 +249,23 @@ const getArticles = async (req, res) => {
 
     if (userId) {
       await getArticlesFunctions.logArticlesServed(filteredArticles, userId);
+    }
+
+    const userArticleFeedEntries = [];
+    ['city', 'national'].forEach(tab => {
+      filteredArticles[tab].forEach((article, index) => {
+        userArticleFeedEntries.push({
+          user_id: userId,
+          article_id: article.id,
+          placement: index + 1,
+          tab: tab === 'city' ? 'local' : 'national',
+          created_at: new Date().toISOString()
+        });
+      });
+    });
+
+    if (userArticleFeedEntries.length > 0 && userId) {
+      await getArticlesFunctions.batchInsertUserArticleFeed(userArticleFeedEntries);
     }
 
     return res.json({ articles: filteredArticles });
@@ -187,8 +290,6 @@ const swappedArticleFunctions = {
     let unservedQuery;
     let queryParams = [];
 
-    console.log(sources);
-  
     if (category === 'local') {
       unservedQuery = `
         select * from articles
@@ -320,11 +421,25 @@ const swappedArticleFunctions = {
     const [[servedArticle]] = await pool.execute(servedQuery, queryParams);
   
     return servedArticle;
+  },
+  insertSingleArticleFeedEntry: async (user_id, article_id, placement, tab) => {  
+    const sql = `
+      INSERT IGNORE INTO user_article_feed 
+      (user_id, article_id, placement, tab, created_at) 
+      VALUES (?, ?, ?, ?, NOW())`;
+    
+    try {
+      const [results] = await pool.execute(sql, [user_id, article_id, placement, tab]);
+      return results;
+    } catch (error) {
+      console.error('Error inserting article into user_article_feed:', error);
+      throw error;
+    }
   }
 }
 
 const getSwappedArticle = async (req, res) => {
-  const { city, state, user_id: userId, category, articleId, sources } = req.query;
+  const { city, state, user_id: userId, category, articleId, sources, index: placement } = req.query;
 
   const missingParams = swappedArticleFunctions.validateSwappedArticleInput(city, state, userId);
   if (missingParams.length > 0) {
@@ -340,6 +455,7 @@ const getSwappedArticle = async (req, res) => {
       unservedArticle.category = category;
       await swappedArticleFunctions.logArticleServed(userId, unservedArticle.id);
       await swappedArticleFunctions.logArticleSwapped(userId, articleId);
+      await swappedArticleFunctions.insertSingleArticleFeedEntry(userId, unservedArticle.id, placement, category);
       return res.status(200).json({ article: unservedArticle, message: null });
     }
   
@@ -349,6 +465,7 @@ const getSwappedArticle = async (req, res) => {
       servedArticle.category = category;
       await swappedArticleFunctions.logArticleServed(userId, servedArticle.id);
       await swappedArticleFunctions.logArticleSwapped(userId, articleId);
+      await swappedArticleFunctions.insertSingleArticleFeedEntry(userId, servedArticle.id, placement, category);
       return res.status(200).json({ article: servedArticle, message: 'No unserved articles available. Showing previously served articles.' });
     } 
 
@@ -362,7 +479,6 @@ const getSwappedArticle = async (req, res) => {
     });
   }
 };
-
 
 // TO DO: this only creates national articles right now, not yet sure how to handle full city/regional/national logic
 const createArticle = async (req, res) => {

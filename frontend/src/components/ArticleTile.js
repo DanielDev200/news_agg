@@ -7,7 +7,7 @@ import { useSwipeable } from 'react-swipeable';
 const ArticleTile = ({ article, clickedArticleIds, onArticleSwap, onArticleClick, onRemoveArticle }) => {
   const [positionX, setPositionX] = useState(0);
   const [isRemoving, setIsRemoving] = useState(false);
-  const articleRead = clickedArticleIds.includes(article.id);
+  const articleRead = clickedArticleIds.includes(article.id) || article.clicked;
 
   const buttonConfig = articleRead ? {
     icon: <CheckIcon/>,
@@ -30,7 +30,8 @@ const ArticleTile = ({ article, clickedArticleIds, onArticleSwap, onArticleClick
       if (eventData.deltaX < -90) {
         setIsRemoving(true);
         setTimeout(() => {
-          onRemoveArticle(article.id);
+          // onRemoveArticle(article.id);
+          // onArticleSwap();
         }, 300);
       }
     }
@@ -41,7 +42,8 @@ const ArticleTile = ({ article, clickedArticleIds, onArticleSwap, onArticleClick
       if (positionX < -90) {
         setIsRemoving(true); 
         setTimeout(() => {
-          onRemoveArticle(article.id);
+          // onRemoveArticle(article.id);
+          onArticleSwap();
         }, 300);
       } else {
         setPositionX(0);

@@ -71,7 +71,6 @@ function AppContent() {
                 <>
                   <HeroSection
                     setArticles={setArticles}
-                    articles={articles}
                     setArticleFetchMade={setArticleFetchMade}
                   />
                   <ExploreSection
