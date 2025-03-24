@@ -264,7 +264,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       }, 500)
     }
 
-    // console.log(`Article ID: ${clickedArticleId}, Timer ran for: ${runTimeSeconds.toFixed(2)} seconds`);
     setDrawerOpen(false);
     setOpensInIframe(false);
     setTimerStartingTime(null);

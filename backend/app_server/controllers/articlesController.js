@@ -224,8 +224,10 @@ const getArticles = async (req, res) => {
     if (userId) {
       const articlesFromFeed = await getArticlesFunctions.fetchArticlesFromFeed(userId);
       const categorizedArticlesFromFeed = getArticlesFunctions.categorizeArticles(articlesFromFeed);
-  
-      if (articlesFromFeed.length > 0) {
+      
+      // if for some reason there's not 10 articles something went wrong, there should always be at least 10
+      // just refetch for the time being
+      if (articlesFromFeed.length = 10) {
         return res.json({articles: categorizedArticlesFromFeed});
       }
     }
@@ -435,11 +437,33 @@ const swappedArticleFunctions = {
       console.error('Error inserting article into user_article_feed:', error);
       throw error;
     }
+  },
+  getArticlePlacementFromFeed: async (userId, articleId) => {
+    try {
+      const query = `
+        SELECT placement
+        FROM user_article_feed
+        WHERE user_id = ? AND article_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1;
+      `;
+
+      const [rows] = await pool.execute(query, [userId, articleId]);
+
+      if (rows.length > 0) {
+        return rows[0].placement;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Failed to fetch article placement from feed:', error);
+      throw error;
+    }
   }
 }
 
 const getSwappedArticle = async (req, res) => {
-  const { city, state, user_id: userId, category, articleId, sources, index: placement } = req.query;
+  const { city, state, user_id: userId, category, articleId, sources } = req.query;
 
   const missingParams = swappedArticleFunctions.validateSwappedArticleInput(city, state, userId);
   if (missingParams.length > 0) {
@@ -449,6 +473,14 @@ const getSwappedArticle = async (req, res) => {
   }
 
   try {
+    const placement = await swappedArticleFunctions.getArticlePlacementFromFeed(userId, articleId);
+
+    if (!placement) {
+      return res.status(404).json({
+        error: 'Placement not found for the given user and article. Ensure the article has been previously served.'
+      });
+    }
+
     const unservedArticle = await swappedArticleFunctions.getUnservedArticle(city, state, userId, category, sources);
     
     if (unservedArticle) {
