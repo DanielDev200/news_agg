@@ -30,6 +30,7 @@ const getArticlesFunctions = {
         ])
       )
     );
+
     await Promise.all(logPromises);
   },
   handleError: (res, error) => {
@@ -223,11 +224,12 @@ const getArticles = async (req, res) => {
   try {
     if (userId) {
       const articlesFromFeed = await getArticlesFunctions.fetchArticlesFromFeed(userId);
+
       const categorizedArticlesFromFeed = getArticlesFunctions.categorizeArticles(articlesFromFeed);
       
       // if for some reason there's not 10 articles something went wrong, there should always be at least 10
       // just refetch for the time being
-      if (articlesFromFeed.length = 10) {
+      if ([...categorizedArticlesFromFeed.city, ...categorizedArticlesFromFeed.national].length === 10) {
         return res.json({articles: categorizedArticlesFromFeed});
       }
     }
