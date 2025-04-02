@@ -18,39 +18,43 @@ export function HeroSectionAuthedContent({
     , modalOpen
     , handleModalClose
     , email
+    , articles
 }){
     return (
         <>
-            <Box
-                sx={{
-                backgroundColor: 'grey',
-                color: 'white',
-                textAlign: 'center',
-                padding: '80px 20px 40px 20px',
-                }}
-            >
+            {
+                articles.length === 0 &&
                 <Box
-                sx={{
-                    maxWidth: 560,
-                    margin: '0 auto',
-                    width: '100%'
-                }}
+                    sx={{
+                    backgroundColor: 'grey',
+                    color: 'white',
+                    textAlign: 'center',
+                    padding: '30px 20px 40px 20px',
+                    }}
                 >
-                    <Typography variant="p" component="p" sx={{textAlign: 'center', marginTop: 2,  textAlign: { xs: 'left', sm: 'center' }}}>
-                        Find your city and start getting almost all of the news:
-                    </Typography>
-                    <HeroSectionInput
-                        handleOptionClick={handleOptionClick}
-                        cityName={cityName}
-                        dropdownOpen={dropdownOpen}
-                        inputDisabled={inputDisabled}
-                        handleCityNameChange={handleCityNameChange}
-                        handleCityDropdownClick={handleCityDropdownClick}
-                        error={error}
-                        handleClearLocation={handleClearLocation}
-                    />
+                    <Box
+                    sx={{
+                        maxWidth: 560,
+                        margin: '0 auto',
+                        width: '100%'
+                    }}
+                    >
+                        <Typography variant="p" component="p" sx={{ fontWeight: .9, textAlign: 'center', marginTop: 2,  textAlign: { xs: 'left', sm: 'center' }}}>
+                            Find your city, get (almost) all your news:
+                        </Typography>
+                        <HeroSectionInput
+                            handleOptionClick={handleOptionClick}
+                            cityName={cityName}
+                            dropdownOpen={dropdownOpen}
+                            inputDisabled={inputDisabled}
+                            handleCityNameChange={handleCityNameChange}
+                            handleCityDropdownClick={handleCityDropdownClick}
+                            error={error}
+                            handleClearLocation={handleClearLocation}
+                        />
+                    </Box>
                 </Box>
-            </Box>
+            }
             <Dialog open={modalOpen} onClose={handleModalClose}>
                 <DialogTitle>Get your city's news</DialogTitle>
                 <DialogContent>

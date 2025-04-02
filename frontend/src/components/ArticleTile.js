@@ -4,7 +4,13 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import CheckIcon from '@mui/icons-material/Check';
 import { useSwipeable } from 'react-swipeable';
 
-const ArticleTile = ({ article, clickedArticleIds, onArticleSwap, onArticleClick, onRemoveArticle }) => {
+const ArticleTile = ({ article
+  ,clickedArticleIds
+  , onArticleSwap
+  , onArticleClick
+  , onRemoveArticle
+  , articleIndex
+}) => {
   const [positionX, setPositionX] = useState(0);
   const [isRemoving, setIsRemoving] = useState(false);
   const articleRead = clickedArticleIds.includes(article.id) || article.clicked;
@@ -62,10 +68,11 @@ const ArticleTile = ({ article, clickedArticleIds, onArticleSwap, onArticleClick
     <Card
       {...(articleRead ? swipeHandlers : {})}
       sx={{
+        marginTop: articleIndex === 0 ? '50px' : '',
         display: 'flex',
         flexDirection: 'row',
         borderRadius: 0,
-        backgroundColor: articleRead ? '#eee' : '#fff',
+        backgroundColor: articleRead ? '#eee' : 'ghostwhite',
         boxShadow: 'none',
         borderBottom: '1px solid #e0e0e0',
         cursor: 'pointer',
@@ -102,7 +109,7 @@ const ArticleTile = ({ article, clickedArticleIds, onArticleSwap, onArticleClick
       </IconButton>
       <Grid2 item xs={1}/> 
       <Grid2 item xs={10} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <CardContent sx={{ flex: 1, padding: '16px 28px 0px 0px', paddingBottom: '16px !important'}}>
+      <CardContent sx={{ flex: 1, paddingBottom: '16px !important'}}>
         <Typography variant="body2" color="textSecondary">
         <span style={{ color: article.category === 'local' ? 'blue' : article.category === 'national' ? 'purple' : 'inherit' }}>
           {`${article.category} `}

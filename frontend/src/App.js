@@ -69,14 +69,15 @@ function AppContent() {
               path="/"
               element={
                 <>
-                  <HeroSection
-                    setArticles={setArticles}
-                    setArticleFetchMade={setArticleFetchMade}
-                  />
                   <ExploreSection
                     articles={articles}
                     setArticles={setArticles}
                     articleFetchMade={articleFetchMade}
+                  />
+                  <HeroSection
+                    setArticles={setArticles}
+                    setArticleFetchMade={setArticleFetchMade}
+                    articles={articles}
                   />
                 </>
               }

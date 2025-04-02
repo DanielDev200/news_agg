@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Box, Typography, Drawer, Tabs, Tab} from '@mui/material';
+import { Container, Box, Typography, Drawer, Tabs, Tab, Button} from '@mui/material';
 import LoadingSpinner from './LoadingSpinner';
 import ArticleList from './ArticleList';
 import WelcomeMessage from './WelcomeMessage';
@@ -274,35 +274,77 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       maxWidth={false}
       sx={{
         maxWidth: 560,
-        margin: '0 auto 0 auto',
+        margin: '68px auto 0 auto',
         padding: '0px',
         paddingBottom: '24px'
       }}
     >
-      <Box>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          aria-label="article tabs"
-          sx={{
-            marginLeft: '16px',
-            padding: '0px',
-            '& .MuiTab-root': { 
-              textTransform: 'none'
-            }
-          }}
-        >
-          <Tab
-            label="Local"
+      { articleFetchMade && 
+        <Box>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="article tabs"
             sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              backgroundColor: '#fff'
+              marginLeft: '16px',
+              padding: '0px',
+              '& .MuiTab-root': { 
+                textTransform: 'none'
+              },
+              '& .MuiTabs-indicator': {
+                display: 'none'
+              },
+              position: 'fixed',
+              zIndex: 10
             }}
-          />
-          <Tab label="National" />
-        </Tabs>
-      </Box>
+          >
+            <Tab
+              disableFocusRipple={true}
+              disableRipple={true}
+              sx={{padding: 0, minWidth: 'unset', maxWidth: 'unset'}}
+              label={
+                <Button
+                  disableRipple={true}
+                  variant="contained"
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: '10px',
+                    padding: '2px 10px',
+                    color: tabValue === 0 ? '#fff' : 'primary.main',
+                    backgroundColor: tabValue === 0 ? 'primary.main' : '#fff',
+                    borderColor: 'primary.main',
+                    marginLeft: '28px'
+                  }}
+                >
+                  Local
+                </Button>
+              }
+            />
+            <Tab
+              disableFocusRipple={true}
+              disableRipple={true}
+              sx={{padding: 0, minWidth: 'unset', maxWidth: 'unset'}}
+              label={
+                <Button
+                  disableRipple={true}
+                  variant="contained"
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: '10px',
+                    padding: '2px 10px',
+                    color: tabValue === 1 ? '#fff' : 'primary.main',
+                    backgroundColor: tabValue === 1 ? 'primary.main' : '#fff',
+                    borderColor: 'primary.main',
+                    marginLeft: '8px'
+                  }}
+                >
+                  National
+                </Button>
+              }
+            />
+          </Tabs>
+        </Box>
+      }
       <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         {renderContent()}
       </Box>

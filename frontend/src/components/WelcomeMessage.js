@@ -3,24 +3,12 @@ import { Typography, Grid as Grid2, Box } from '@mui/material';
 
 const WelcomeMessage = () => (
   <Grid2 item xs={12}>
-    <Box sx={{ textAlign: 'left', margin: '20px 10px' }}>
-      <Typography variant="p" component="p" sx={{textAlign: 'left', fontSize: '20px'}}>
-        (almost) All The News is your sole source for news...almost.
+    <Box sx={{ textAlign: 'left', margin: '20px 20px' }}>
+      <Typography variant="p" component="p" sx={{textAlign: 'left'}}>
+        (almost) All The News prioritizes <strong>local publications</strong> and lets you focus on a few articles at a time.
       </Typography>
       <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
-        AATN puts local news into a feed alongside national stories, so you get the full picture.
-      </Typography>
-      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
-        Just try finding real, actual local news on another aggregator. If you do, please share it with me.
-      </Typography>
-      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
-        I couldn't find one so I built this instead.
-      </Typography>
-      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
-        If you want more information, check out the about page.
-      </Typography>
-      <Typography variant="p" component="p" sx={{textAlign: 'left', marginTop: 2}}>
-        Otherwise, enter your city above (or request it if it's not there), and start getting almost all the news, today!
+        So you can get caught up, not sucked in.
       </Typography>
     </Box>
   </Grid2>

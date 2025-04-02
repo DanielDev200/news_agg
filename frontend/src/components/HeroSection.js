@@ -6,7 +6,7 @@ import { useAppContext } from '../context/AppContext';
 import { emailRegexTest } from '../utils/functions';
 import { useNavigate } from 'react-router-dom';
 
-export function HeroSection({ setArticles, setArticleFetchMade }) {
+export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
   const [initialFetchMade, setInitialFetchMade] = useState(false);
   const [cityName, setCityName] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -146,6 +146,7 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
         modalOpen={modalOpen}
         handleModalClose={handleModalClose}
         email={email}
+        articles={articles}
       />
     )
   } else if (isAuthenticated && userLocation) {
@@ -155,36 +156,31 @@ export function HeroSection({ setArticles, setArticleFetchMade }) {
             backgroundColor: 'grey',
             color: 'white',
             textAlign: 'center',
-            marginTop: '58px'
+            position: 'fixed',
+            width: '100%',
+            bottom: 0,
+            margin: 'none'
           }}
         >
-          <Box
-            sx={{
-              maxWidth: 560,
-              margin: '0 auto',
-              width: '100%'
-            }}
-          >
-          <Typography variant="p" component="p" sx={{ textAlign: 'center', marginTop: 2, textAlign: { xs: 'left', sm: 'center' } }}>
-              Local articles are for 
-              <Button 
-                sx={{
-                  fontWeight: 'bold', 
-                  padding: 0, 
-                  minWidth: 'auto',
-                  textTransform: 'none',
-                  color: 'white',
-                  textDecoration: 'underline',
-                  fontSize: 'inherit',
-                  fontFamily: 'inherit',
-                  marginLeft: '4px',
-                }} 
-                onClick={() => console.log("City and State clicked")}
-              >
-                {userLocation.city}, {userLocation.state}
-              </Button>
+          <Typography variant="p" component="p" sx={{ textAlign: 'center'}}>
+            showing articles for
+            <Button 
+              sx={{
+                fontWeight: 'bold', 
+                padding: 0, 
+                minWidth: 'auto',
+                textTransform: 'none',
+                color: 'white',
+                textDecoration: 'underline',
+                fontSize: 'inherit',
+                fontFamily: 'inherit',
+                marginLeft: '4px',
+              }} 
+              onClick={() => console.log("City and State clicked")}
+            >
+              {userLocation.city}, {userLocation.state}
+            </Button>
           </Typography>
-          </Box>
       </Box>
     )
   } else {

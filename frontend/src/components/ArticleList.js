@@ -19,6 +19,7 @@ const ArticleList = ({ articles, setArticles, clickedArticleIds, onArticleClick,
           }}
         >
           <ArticleTile
+            articleIndex={index}
             article={article}
             clickedArticleIds={clickedArticleIds}
             onArticleClick={() => onArticleClick(article)}

@@ -38,7 +38,7 @@ export function Topbar() {
       sx={{
         top: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        backgroundColor: 'white',
+        backgroundColor: 'ghostwhite',
         borderBottom: '1px solid #eee',
         transform: 'translateZ(0)'
       }}
