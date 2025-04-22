@@ -2,7 +2,7 @@ import axios from './axiosConfig';
 
 export const fetchArticles = async (city, state, user_id) => {
   try {
-    
+
     const response = await axios.get('/articles', {
       params: {
         city,

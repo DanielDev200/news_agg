@@ -131,9 +131,7 @@ const getArticlesFunctions = {
   applyFilters: async (articles, userId) => {
     let filteredArticles = articles;
 
-    if (userId) {
-      filteredArticles = await getArticlesFunctions.filterClickedArticles(filteredArticles, userId);
-    }
+    filteredArticles = await getArticlesFunctions.filterClickedArticles(filteredArticles, userId);
 
     const topFiveArticles = getArticlesFunctions.getTopFiveArticles(filteredArticles);
 
@@ -249,11 +247,10 @@ const getArticles = async (req, res) => {
     }
 
     const categorizedArticles = getArticlesFunctions.categorizeArticles(articles);
+
     const filteredArticles = await getArticlesFunctions.filterArticlesByUser(categorizedArticles, userId);
 
-    if (userId) {
-      await getArticlesFunctions.logArticlesServed(filteredArticles, userId);
-    }
+    await getArticlesFunctions.logArticlesServed(filteredArticles, userId);
 
     const userArticleFeedEntries = [];
     ['city', 'national'].forEach(tab => {
@@ -268,9 +265,7 @@ const getArticles = async (req, res) => {
       });
     });
 
-    if (userArticleFeedEntries.length > 0 && userId) {
-      await getArticlesFunctions.batchInsertUserArticleFeed(userArticleFeedEntries);
-    }
+    await getArticlesFunctions.batchInsertUserArticleFeed(userArticleFeedEntries);
 
     return res.json({ articles: filteredArticles });
   } catch (error) {
@@ -291,6 +286,11 @@ const swappedArticleFunctions = {
     return missingParams;
   },
   getUnservedArticle: async (city, state, userId, category, sources) => {
+    // TODO: hack that is accounting for anonymous user city name containg the state as well
+    // basically when an anon user seletts a city the entire input is used, whereas an authed user only gets the city
+    // Long Beach, CA vs Long Beach
+    const cityToUse = city.split(',')[0];
+
     let unservedQuery;
     let queryParams = [];
 
@@ -305,7 +305,7 @@ const swappedArticleFunctions = {
         order by sourced desc
       `;
         
-      queryParams = [city, state, userId];
+      queryParams = [cityToUse, state, userId];
     } else if (category === 'national') {
       unservedQuery = `
         select * from articles

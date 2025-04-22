@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 export function Topbar() {
   const navigate = useNavigate();
-  const { isAuthenticated, setIsAuthenticated } = useAppContext();
+  const { isAuthenticated, setIsAuthenticated, user } = useAppContext();
   const [authChecked, setAuthChecked] = useState(false);
   const [authPopoverAnchor, setAuthPopoverAnchor] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
@@ -71,7 +71,7 @@ export function Topbar() {
 
         {authChecked && (
           <>
-            {isAuthenticated ? (
+            {user != null ? (
               <>
                 <IconButton
                   className="fade-in"

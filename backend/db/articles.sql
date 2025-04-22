@@ -64,5 +64,5 @@ CREATE TABLE user_article_feed (
     tab VARCHAR(12) NOT NULL,
     created_at DATETIME NOT NULL,
     FOREIGN KEY (article_id) REFERENCES articles(id),
-    UNIQUE INDEX idx_article_placement (article_id, placement)
+    UNIQUE INDEX idx_article_placement (user_id, article_id, placement)
 );

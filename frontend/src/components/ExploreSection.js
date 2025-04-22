@@ -28,7 +28,8 @@ function TabPanel(props) {
 }
 
 export function ExploreSection({ articles, setArticles, articleFetchMade }) {
-  const { user, isAuthenticated, authAttempted, userLocation, sources, getUserLocation } = useAppContext();
+  const { user, isAuthenticated, authAttempted, userLocation, sources, getUserLocation, cityName, getAnonId } = useAppContext();
+  
   const [loading, setLoading] = useState(true);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupContent, setPopupContent] = useState({ title: '', message: '' });
@@ -38,11 +39,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const [servedContentMessageShown, setServedContentMessageShown] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   const [clickedArticleId, setClickedArticleId] = useState(null);
-  const [timerStartingTime, setTimerStartingTime] = useState(null);
   const [clickedArticleIds, setClickedArticleIds] = useState([]);
-  const [persistedClickedArticles, setPersistedClickedArticles] = useState({articles:[]});
   const [tabValue, setTabValue] = useState(0);
-  const [progressWidth, setProgressWidth] = useState(0);
 
   useEffect(() => {
     if (isAuthenticated && userLocation) {
@@ -52,32 +50,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
   }, [articleFetchMade, isAuthenticated, userLocation]);
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-
-      if (user && user.id) {
-        const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
-        setPersistedClickedArticles(fetchedPersistedClickedArticles);
-        setTimeout(() => {
-          setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
-        }, 500)
-      } else {
-        setProgressWidth(11);
-      }
-
-    };
-  
-    fetchArticles();
-
-    const timer = setTimeout(() => {
-      setShouldRender(true);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleArticleClick = async (article) => {
+    const userId = user != null ? user.id : getAnonId();
     let canLoadInIframe = true;
     setClickedArticleId(article.id);
 
@@ -87,27 +61,12 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
       }
     });
 
-    setTimerStartingTime(Date.now());
     setOpensInIframe(canLoadInIframe);
     setArticleUrl(article.url);
     setDrawerOpen(true);
 
-    if (isAuthenticated && user) {
-      await recordUserArticleClick(user.id, article.id);
-      setClickedArticleIds([...clickedArticleIds, article.id]);
-      const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-      const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
-      setPersistedClickedArticles(fetchedPersistedClickedArticles);
-    }
-  };
-
-  const handleNotRegistered = () => {
-    setPopupContent({
-      title: 'Registration Required',
-      message: 'You need to register or log in to swap articles.',
-    });
-    setPopupOpen(true);
-    return;
+    await recordUserArticleClick(userId, article.id);
+    setClickedArticleIds([...clickedArticleIds, article.id]);
   };
 
   const handleSetSwappedArticle = (newArticle, index) => {
@@ -138,13 +97,14 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   };
 
   const handleArticleSwap = async (articleId) => {
-    if (!isAuthenticated) {
-      handleNotRegistered();
-      return;
-    }
+    const userId = user != null ? user.id : getAnonId();
 
     const index = articles.findIndex(article => article.id === articleId);
-    const { city, state } = userLocation.city && userLocation.state ? userLocation: await getUserLocation(user.id);
+    const { city, state } = userLocation && userLocation.city && userLocation.state ? userLocation: await getUserLocation(userId);
+ 
+    const cityToUse = city ? city : cityName;
+
+    const stateToUse = state ? state : 'CA';
 
     try {
       const {
@@ -154,9 +114,9 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
         messageType,
         error: fetchError,
       } = await fetchSwappedArticle(
-        city,
-        state,
-        user.id,
+        cityToUse,
+        stateToUse,
+        userId,
         articles[index].category,
         articles[index].id,
         articles.filter(article => article.category === articles[index].category).map(article => article.source),
@@ -248,25 +208,8 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   };
 
   const handleDrawerClose = async () => {
-    const currentTime = Date.now();
-    const runTimeMilliseconds = currentTime - timerStartingTime;
-    const runTimeSeconds = runTimeMilliseconds / 1000;
-    const formattedDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-
-    if (user && user.id) {
-      const fetchedPersistedClickedArticles = await fetchUserArticlesByDate(user.id, formattedDate);
-      setTimeout(() => {
-        setProgressWidth(fetchedPersistedClickedArticles.articles.length === 0  ? 11 : (fetchedPersistedClickedArticles.articles.length / 6)*100);
-      }, 500)
-    } else {
-      setTimeout(() => {
-        setProgressWidth(clickedArticleIds.length === 0  ? 11 : (clickedArticleIds.length / 6)*100);
-      }, 500)
-    }
-
     setDrawerOpen(false);
     setOpensInIframe(false);
-    setTimerStartingTime(null);
   };
 
   return (

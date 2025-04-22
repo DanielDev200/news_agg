@@ -8,18 +8,17 @@ import { useNavigate } from 'react-router-dom';
 
 export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
   const [initialFetchMade, setInitialFetchMade] = useState(false);
-  const [cityName, setCityName] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [error, setError] = useState('');
   const [inputDisabled, setInputDisabled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const { user, isAuthenticated, userLocation, authAttempted } = useAppContext();
+  const { user, isAuthenticated, userLocation, authAttempted, cityName, setCityName, getAnonId } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated && userLocation && userLocation.city && userLocation.state && !initialFetchMade) {
+    if (userLocation && userLocation.city && userLocation.state && !initialFetchMade) {
       setCityName(`${userLocation.city}, ${userLocation.state}`);
       handleArticleSearch(userLocation.city, userLocation.state);
       setInitialFetchMade(true);
@@ -30,13 +29,13 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
   const handleArticleSearch = async (city, state) => {
     setError('');
   
-    const userId = user?.id || null;
+    const userId = user?.id || getAnonId();
   
     const articlesFetched = await fetchAndSetArticles(city, state, userId);
   
     if (!articlesFetched) return; 
   
-    await saveUserLocationIfNecessary(isAuthenticated, userLocation, userId, city, state);
+    await saveUserLocationIfNecessary(userLocation, userId, city, state);
   };
 
   const fetchAndSetArticles = async (city, state, userId) => {
@@ -57,16 +56,10 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
     }
   };
   
-  const saveUserLocationIfNecessary = async (isAuthenticated, userLocation, userId, city, state) => {
-    if (!isAuthenticated) {
-      return;
-    }
-
+  const saveUserLocationIfNecessary = async (userLocation, userId, city, state) => {
     if (!userLocation || (!userLocation.city && !userLocation.state)) {
-      if (userId) {
         await saveUserLocation(userId, city, state);
       }
-    }
   };
 
   const handleCityNameChange = ({ target: { value } }) => {
@@ -83,7 +76,7 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
     setInputDisabled(false);
   };
 
-  const handleOptionClick = ({label, city, state}) => {
+  const handleOptionClick = async ({label, city, state}) => {
     if (label === "Get your city's local news") {
       navigate("/addyourcity");
       return;
@@ -94,9 +87,11 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
     setDropdownOpen(false);
     setInputDisabled(true);
 
-    if (!isAuthenticated) {
-      localStorage.setItem("selectedCity", JSON.stringify({ city, state }));
-    }
+    const userLocationToUse = userLocation && userLocation.city && userLocation.state ? userLocation : {};
+
+    const userIdToUse = user && user.id ? user.id : getAnonId();
+
+    await saveUserLocationIfNecessary(userLocationToUse, userIdToUse, city, state);
   };
 
   const handleNoMatchClick = () => setModalOpen(true);
@@ -184,7 +179,6 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
       </Box>
     )
   } else {
-    console.log('--- else ---');
     return '';
   }
 }

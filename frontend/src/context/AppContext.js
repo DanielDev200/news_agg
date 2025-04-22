@@ -10,6 +10,16 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [sources, setSources] = useState([]);
+  const [cityName, setCityName] = useState('');
+
+  const getAnonId = () => {
+    let anonId = localStorage.getItem('anon_id');
+    if (!anonId) {
+      anonId = crypto.randomUUID();
+      localStorage.setItem('anon_id', anonId);
+    }
+    return anonId;
+  };
 
   const getUserLocation = async (userId, currentUserLocation = null) => {
     try {
@@ -43,37 +53,37 @@ export const AppProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      const userIdToUse = session ? session.user.id : getAnonId();
+
       if (session) {
         setUser(session.user);
-        setIsAuthenticated(true);
-        setAuthAttempted(true);
-        if (session.user?.id) {
-          await getUserLocation(session.user.id, userLocation);
-        }
       }
 
+      setIsAuthenticated(true);
+      setAuthAttempted(true);
+        
+      await getUserLocation(userIdToUse, userLocation);
       await hydrateSources();
     };
 
     getSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const userIdToUse = session ? session.user.id : getAnonId();
+
       if (session) {
         setUser(session.user);
-        setIsAuthenticated(true);
-        setAuthAttempted(true);
-        if (session.user?.id) {
-          await getUserLocation(session.user.id, !userLocation);
-        }
       } else {
         setUser(null);
-        setIsAuthenticated(false);
-        setAuthAttempted(true);
-        setUserLocation(null);
       }
 
+      setIsAuthenticated(true);
+      setAuthAttempted(true);
+        
+      await getUserLocation(userIdToUse, userLocation);
       await hydrateSources();
     });
 
@@ -83,7 +93,19 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   return (
-    <AppContext.Provider value={{ user, isAuthenticated, authAttempted, userLocation, getUserLocation, setIsAuthenticated, setUserLocation, sources }}>
+    <AppContext.Provider value={{
+      user,
+      isAuthenticated,
+      authAttempted,
+      userLocation,
+      cityName,
+      sources,
+      getUserLocation,
+      setIsAuthenticated,
+      setUserLocation,
+      setCityName,
+      getAnonId
+    }}>
       {children}
     </AppContext.Provider>
   );
