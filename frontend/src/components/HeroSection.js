@@ -14,7 +14,7 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const { user, isAuthenticated, userLocation, authAttempted, cityName, setCityName, getAnonId } = useAppContext();
+  const { user, isAuthenticated, userLocation, authAttempted, getUserLocation, cityName, setCityName, getAnonId } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,8 +58,10 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
   
   const saveUserLocationIfNecessary = async (userLocation, userId, city, state) => {
     if (!userLocation || (!userLocation.city && !userLocation.state)) {
-        await saveUserLocation(userId, city, state);
-      }
+      await saveUserLocation(userId, city, state);
+    }
+
+    getUserLocation(userId);
   };
 
   const handleCityNameChange = ({ target: { value } }) => {
@@ -146,9 +148,6 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
       />
     )
   } else if (isAuthenticated && userLocation && userLocation.city && userLocation.state) {
-    console.log('isAuthenticated: ', isAuthenticated);
-    console.log('userLocation: ', userLocation);
-
     return (
         <Box
           sx={{

@@ -145,26 +145,15 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
 
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
-  console.log('userLocation: ', userLocation);
-
   const renderContent = () => {
-    // if (!authAttempted) {
-    //   console.log('    if (!authAttempted) {')
-    //   return null;
-    // }
-
     const check = userLocation && !userLocation.city && !userLocation;
-    console.log('check: ', check);
 
     if (Object.keys(userLocation).length === 0 && userLocation.constructor === Object) {
-      console.log('if (userLocation && !userLocation.city && !userLocation) {')
       return <WelcomeMessage />;
     }
 
-    if (isAuthenticated && !articleFetchMade) {  
-      console.log('if (isAuthenticated && !articleFetchMade) {  ')
+    if (isAuthenticated && !articleFetchMade) {
       if (!shouldRender) {
-        console.log('if (!shouldRender) {')
         return null;
       }
   
@@ -172,12 +161,10 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
 
     if (loading) {
-      console.log('if (loading) {')
       return <LoadingSpinner />;
     }
 
     if (tabValue > 0) {
-      console.log('if (tabValue > 0) {')
       return (
         <TabPanel value={tabValue} index={tabValue}>
           <ArticleList
@@ -192,7 +179,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
 
     if (articleFetchMade && articles.length > 0) {
-      console.log('if (articleFetchMade && articles.length > 0) {')
       return (
         <TabPanel value={tabValue} index={0}>
           <ArticleList
@@ -207,7 +193,6 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
     }
 
     if (articleFetchMade && articles.length === 0) {
-      console.log('if (articleFetchMade && articles.length === 0) {')
       return (
         <TabPanel value={tabValue} index={0}>
           <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
