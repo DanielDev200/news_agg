@@ -121,9 +121,10 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
     handleModalClose();
   }
 
-  if (!authAttempted) {
-    return '';
-  } else if (!isAuthenticated || isAuthenticated && userLocation == null) {
+  // if (!authAttempted) {
+  //   return '';
+  // } else
+  if (userLocation && !userLocation.city && !userLocation.state) {
     return (
       <HeroSectionAuthedContent
         handleOptionClick={handleOptionClick}
@@ -144,7 +145,10 @@ export function HeroSection({ setArticles, setArticleFetchMade, articles }) {
         articles={articles}
       />
     )
-  } else if (isAuthenticated && userLocation) {
+  } else if (isAuthenticated && userLocation && userLocation.city && userLocation.state) {
+    console.log('isAuthenticated: ', isAuthenticated);
+    console.log('userLocation: ', userLocation);
+
     return (
         <Box
           sx={{
