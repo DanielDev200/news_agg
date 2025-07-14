@@ -146,65 +146,90 @@ export function ExploreSection({ articles, setArticles, articleFetchMade }) {
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
   const renderContent = () => {
-    const check = userLocation && !userLocation.city && !userLocation;
-
-    if (Object.keys(userLocation).length === 0 && userLocation.constructor === Object) {
-      return <WelcomeMessage />;
-    }
-
-    if (isAuthenticated && !articleFetchMade) {
-      if (!shouldRender) {
-        return null;
+    try {
+      const isEmptyObject = (obj) =>
+        obj && typeof obj === 'object' && !Array.isArray(obj) && Object.keys(obj).length === 0;
+  
+      // Check if userLocation is an empty object
+      if (isEmptyObject(userLocation)) {
+        return <WelcomeMessage />;
       }
   
-      return <WelcomeMessageAuthed />;
-    }
-
-    if (loading) {
-      return <LoadingSpinner />;
-    }
-
-    if (tabValue > 0) {
+      // If authenticated and articles haven't been fetched yet
+      if (isAuthenticated && !articleFetchMade) {
+        if (!shouldRender) {
+          return null;
+        }
+        return <WelcomeMessageAuthed />;
+      }
+  
+      // Loading state
+      if (loading) {
+        return <LoadingSpinner />;
+      }
+  
+      // National articles tab
+      if (tabValue > 0) {
+        return (
+          <TabPanel value={tabValue} index={tabValue}>
+            <ArticleList
+              articles={(articles || []).filter(article => article.category === 'national')}
+              clickedArticleIds={clickedArticleIds}
+              onArticleClick={handleArticleClick}
+              onArticleSwap={handleArticleSwap}
+              setArticles={setArticles}
+            />
+          </TabPanel>
+        );
+      }
+  
+      // Local articles tab
+      if (articleFetchMade && (articles || []).length > 0) {
+        return (
+          <TabPanel value={tabValue} index={0}>
+            <ArticleList
+              articles={articles.filter(article => article.category === 'local')}
+              clickedArticleIds={clickedArticleIds}
+              onArticleClick={handleArticleClick}
+              onArticleSwap={handleArticleSwap}
+              setArticles={setArticles}
+            />
+          </TabPanel>
+        );
+      }
+  
+      // No articles found
+      if (articleFetchMade && (articles || []).length === 0) {
+        return (
+          <TabPanel value={tabValue} index={0}>
+            <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
+              No articles found for your selected city and state.
+            </Typography>
+          </TabPanel>
+        );
+      }
+  
+      // Fallback
+      return null;
+  
+    } catch (err) {
+      console.error('Error rendering main content:', err);
+  
+      // Reload the page once per session
+      if (!sessionStorage.getItem('renderContentReloaded')) {
+        sessionStorage.setItem('renderContentReloaded', 'true');
+        window.location.reload();
+      }
+  
+      // Fallback content if reload doesn't help
       return (
-        <TabPanel value={tabValue} index={tabValue}>
-          <ArticleList
-            articles={articles.filter(article => article.category === 'national')}
-            clickedArticleIds={clickedArticleIds}
-            onArticleClick={handleArticleClick}
-            onArticleSwap={handleArticleSwap}
-            setArticles={setArticles}
-          />
-        </TabPanel>
-      )
-    }
-
-    if (articleFetchMade && articles.length > 0) {
-      return (
-        <TabPanel value={tabValue} index={0}>
-          <ArticleList
-            articles={articles.filter(article => article.category === 'local')}
-            clickedArticleIds={clickedArticleIds}
-            onArticleClick={handleArticleClick}
-            onArticleSwap={handleArticleSwap}
-            setArticles={setArticles}
-          />
-        </TabPanel>
+        <Typography variant="h6" sx={{ color: 'red', textAlign: 'center', mt: 4 }}>
+          Something went wrong while loading content.
+        </Typography>
       );
     }
-
-    if (articleFetchMade && articles.length === 0) {
-      return (
-        <TabPanel value={tabValue} index={0}>
-          <Typography variant="h6" sx={{ color: 'grey', textAlign: 'left', mt: 2 }}>
-            {'No articles found for your selected city and state.'}
-          </Typography>
-        </TabPanel>
-      );
-    }
-
-    return null;
   };
-
+  
   const handleDrawerClose = async () => {
     setDrawerOpen(false);
     setOpensInIframe(false);

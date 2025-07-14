@@ -40,7 +40,7 @@ export function HeroSectionAuthedContent({
                     }}
                     >
                         <Typography variant="p" component="p" sx={{ fontWeight: .9, textAlign: 'center', marginTop: 2,  textAlign: { xs: 'left', sm: 'center' }}}>
-                            Find your city, get (almost) all your news:
+                            Get today’s local headlines for your city:
                         </Typography>
                         <HeroSectionInput
                             handleOptionClick={handleOptionClick}
